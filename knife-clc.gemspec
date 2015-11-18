@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'faraday_middleware', '~> 0.10.0'
   spec.add_dependency 'formatador', '~> 0.2.5'
 
+  spec.add_development_dependency 'rubocop', '~> 0.35.1'
   spec.add_development_dependency 'coveralls', '~> 0.8.9'
   spec.add_development_dependency 'pry-byebug', '~> 3.3.0'
   spec.add_development_dependency 'rspec', '~> 3.4.0'
