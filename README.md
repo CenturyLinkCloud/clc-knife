@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/clc-tmp/knife-clc.svg?branch=master)](https://travis-ci.org/clc-tmp/knife-clc)
+[![Coverage Status](https://coveralls.io/repos/clc-tmp/knife-clc/badge.svg?branch=master&service=github)](https://coveralls.io/github/clc-tmp/knife-clc?branch=master)
 
 # Knife::Clc
 
