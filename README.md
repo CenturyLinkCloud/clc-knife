@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/clc-tmp/knife-clc.svg)](https://travis-ci.org/clc-tmp/knife-clc)
+[![Build Status](https://travis-ci.org/clc-tmp/knife-clc.svg?branch=master)](https://travis-ci.org/clc-tmp/knife-clc)
 
 # Knife::Clc
 
