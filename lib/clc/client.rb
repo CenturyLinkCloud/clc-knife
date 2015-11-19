@@ -13,6 +13,7 @@ module Clc
         builder.response :json
         builder.response :logger, ::Logger.new(STDOUT), :bodies => true
         builder.adapter Faraday.default_adapter
+        builder.use Faraday::Response::RaiseError
       end
 
       response = @connection.post(
@@ -65,16 +66,12 @@ module Clc
 
     # TODO: Takes a lot of time
     def create_server(params = {})
-      params['name'] ||= 'req'
-      params['groupId'] ||= '975a79f94b84452ea1c920325967a33c'
-      params['sourceServerId'] ||= 'CENTOS-6-64-TEMPLATE'
-      params['cpu'] ||= '1'
-      params['memoryGB'] ||= '1'
-      params['type'] ||= 'standard'
-
       operation_info = connection.post("/v2/servers/#{account}", params).body
       operation = operation_info['links'].find { |link| link['rel'] == 'status' }
+      server_link = operation_info['links'].find { |link| link['rel'] == 'self' }
       wait_for_operation(operation['id'], 360)
+
+      connection.get(server_link['href']).body
     end
 
     def delete_server(id)

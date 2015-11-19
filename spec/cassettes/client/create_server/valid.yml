@@ -1,0 +1,154 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/authentication/login
+    body:
+      encoding: UTF-8
+      string: "{\"username\":\"<CLC_USERNAME>\",\"password\":\"<CLC_PASSWORD>\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Thu, 19 Nov 2015 20:14:32 GMT
+      Content-Length:
+      - '740'
+    body:
+      encoding: UTF-8
+      string: "{\"userName\":\"<CLC_USERNAME>\",\"accountAlias\":\"ALTD\",\"locationAlias\":\"VA1\",\"roles\":[\"AccountAdmin\",\"AccountViewer\",\"BillingAdmin\",\"DNSManager\",\"NetworkAdmin\",\"SecurityAdmin\",\"ServerAdmin\",\"ServerOperator\",\"ServerScheduler\"],\"bearerToken\":\"<CLC_BEARER_TOKEN>\"}"
+    http_version: 
+  recorded_at: Thu, 19 Nov 2015 20:20:12 GMT
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/servers/ALTD
+    body:
+      encoding: UTF-8
+      string: "{\"name\":\"req\",\"groupId\":\"975a79f94b84452ea1c920325967a33c\",\"sourceServerId\":\"CENTOS-6-64-TEMPLATE\",\"cpu\":1,\"memoryGB\":1,\"type\":\"standard\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 202
+      message: Accepted
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Date:
+      - Thu, 19 Nov 2015 20:14:37 GMT
+      Content-Length:
+      - '262'
+    body:
+      encoding: UTF-8
+      string: "{\"server\":\"req\",\"isQueued\":true,\"links\":[{\"rel\":\"status\",\"href\":\"/v2/operations/altd/status/ca1-41237\",\"id\":\"ca1-41237\"},{\"rel\":\"self\",\"href\":\"/v2/servers/ALTD/0a60c3e130d64f71a113eec8835c091a?uuid=True\",\"id\":\"0a60c3e130d64f71a113eec8835c091a\",\"verbs\":[\"GET\"]}]}"
+    http_version: 
+  recorded_at: Thu, 19 Nov 2015 20:20:19 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/operations/ALTD/status/ca1-41237
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Thu, 19 Nov 2015 20:17:04 GMT
+      Content-Length:
+      - '141'
+    body:
+      encoding: UTF-8
+      string: "{\"status\":\"succeeded\"}"
+    http_version: 
+  recorded_at: Thu, 19 Nov 2015 20:22:45 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/servers/ALTD/0a60c3e130d64f71a113eec8835c091a?uuid=True
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Thu, 19 Nov 2015 20:17:05 GMT
+      Content-Length:
+      - '944'
+    body:
+      encoding: UTF-8
+      string: "{\"id\":\"ca1altdreq16\",\"name\":\"CA1ALTDREQ16\",\"description\":\"\",\"groupId\":\"975a79f94b84452ea1c920325967a33c\",\"isTemplate\":false,\"locationId\":\"CA1\",\"osType\":\"CentOS
+        6 64-bit\",\"os\":\"centOS6_64Bit\",\"status\":\"active\",\"details\":{\"ipAddresses\":[{\"internal\":\"10.50.48.17\"}],\"secondaryIPAddresses\":[],\"alertPolicies\":[],\"cpu\":1,\"diskCount\":3,\"hostName\":\"\",\"inMaintenanceMode\":false,\"memoryMB\":1024,\"powerState\":\"started\",\"storageGB\":17,\"disks\":[{\"id\":\"0:0\",\"sizeGB\":1,\"partitionPaths\":[]},{\"id\":\"0:1\",\"sizeGB\":2,\"partitionPaths\":[]},{\"id\":\"0:2\",\"sizeGB\":14,\"partitionPaths\":[]}],\"partitions\":[],\"snapshots\":[],\"customFields\":[]},\"type\":\"standard\",\"storageType\":\"premium\",\"changeInfo\":{\"createdBy\":\"<CLC_USERNAME>\",\"createdDate\":\"2015-11-19T20:14:57Z\",\"modifiedBy\":\"<CLC_USERNAME>\",\"modifiedDate\":\"2015-11-19T20:14:57Z\"},\"links\":[{\"rel\":\"self\",\"href\":\"/v2/servers/altd/ca1altdreq16\",\"id\":\"ca1altdreq16\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"group\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c\",\"id\":\"975a79f94b84452ea1c920325967a33c\"},{\"rel\":\"account\",\"href\":\"/v2/accounts/altd\",\"id\":\"altd\"},{\"rel\":\"billing\",\"href\":\"/v2/billing/altd/serverPricing/ca1altdreq16\"},{\"rel\":\"publicIPAddresses\",\"href\":\"/v2/servers/altd/ca1altdreq16/publicIPAddresses\",\"verbs\":[\"POST\"]},{\"rel\":\"credentials\",\"href\":\"/v2/servers/altd/ca1altdreq16/credentials\"},{\"rel\":\"statistics\",\"href\":\"/v2/servers/altd/ca1altdreq16/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/servers/altd/0a60c3e130d64f71a113eec8835c091a/upcomingScheduledActivities\"},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/servers/altd/0a60c3e130d64f71a113eec8835c091a/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"capabilities\",\"href\":\"/v2/servers/altd/ca1altdreq16/capabilities\"},{\"rel\":\"alertPolicyMappings\",\"href\":\"/v2/servers/altd/ca1altdreq16/alertPolicies\",\"verbs\":[\"POST\"]},{\"rel\":\"antiAffinityPolicyMapping\",\"href\":\"/v2/servers/altd/ca1altdreq16/antiAffinityPolicy\",\"verbs\":[\"PUT\",\"DELETE\"]},{\"rel\":\"cpuAutoscalePolicyMapping\",\"href\":\"/v2/servers/altd/ca1altdreq16/cpuAutoscalePolicy\",\"verbs\":[\"PUT\",\"DELETE\"]}]}"
+    http_version: 
+  recorded_at: Thu, 19 Nov 2015 20:22:47 GMT
+recorded_with: VCR 3.0.0

@@ -8,7 +8,7 @@ AllCops:
 Style/CollectionMethods:
   Description: Preferred collection methods.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#map-find-select-reduce-size
-  Enabled: true
+  Enabled: false
   PreferredMethods:
     collect: 'map'
     collect!: 'map!'
