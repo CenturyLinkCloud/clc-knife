@@ -10,7 +10,14 @@ class Chef
       def run
         $stdout.sync = true
 
-        datacenter = connection.create_server
+        connection.create_server(
+          'name' => 'req',
+          'groupId' => '975a79f94b84452ea1c920325967a33c',
+          'sourceServerId' => 'CENTOS-6-64-TEMPLATE',
+          'cpu' => 1,
+          'memoryGB' => 1,
+          'type' => 'standard'
+        )
       end
     end
   end
