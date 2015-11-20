@@ -1,6 +1,6 @@
 require 'knife-clc/version'
 require 'formatador'
-require 'clc/client'
+require 'clc'
 
 class Chef
   class Knife

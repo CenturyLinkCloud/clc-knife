@@ -9,11 +9,11 @@ module Clc
 
     def initialize(params = {})
       @connection = Faraday.new(:url => 'https://api.ctl.io') do |builder|
+        builder.use Clc::CloudExceptions::Handler
         builder.request :json
         builder.response :json
         builder.response :logger, ::Logger.new(STDOUT), :bodies => true
         builder.adapter Faraday.default_adapter
-        builder.use Faraday::Response::RaiseError
       end
 
       response = @connection.post(
