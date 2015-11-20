@@ -4,13 +4,13 @@ describe Clc::Client do
   describe '#list_servers' do
     context 'with cloud success', with_vcr('client/list_servers/success') do
       it 'returns an Array' do
-        expect(client.list_servers).to be_an(Array)
+        expect(client.list_servers('ca1')).to be_an(Array)
       end
     end
 
     context 'with cloud failure', with_vcr('client/list_servers/failure') do
       it 'raises an error' do
-        expect { client.list_servers }.to raise_error(Faraday::ClientError)
+        expect { client.list_servers('not-real') }.to raise_error(Clc::CloudExceptions::Error)
       end
     end
   end
@@ -57,38 +57,6 @@ describe Clc::Client do
 
       it 'launches server of specified type' do
         expect(server['type']).to eq(params['type'])
-      end
-    end
-
-    context 'without required params', with_vcr('client/create_server/required') do
-      it 'fails without name parameter' do
-        params.delete('name')
-        expect { client.create_server(params) }.to raise_error(Faraday::ClientError)
-      end
-
-      it 'fails without CPU parameter' do
-        params.delete('cpu')
-        expect { client.create_server(params) }.to raise_error(Faraday::ClientError)
-      end
-
-      it 'fails without group ID parameter' do
-        params.delete('groupId')
-        expect { client.create_server(params) }.to raise_error(Faraday::ClientError)
-      end
-
-      it 'fails without source ID parameter' do
-        params.delete('sourceServerId')
-        expect { client.create_server(params) }.to raise_error(Faraday::ClientError)
-      end
-
-      it 'fails without memory parameter' do
-        params.delete('memoryGB')
-        expect { client.create_server(params) }.to raise_error(Faraday::ClientError)
-      end
-
-      it 'fails without type parameter' do
-        params.delete('type')
-        expect { client.create_server(params) }.to raise_error(Faraday::ClientError)
       end
     end
   end

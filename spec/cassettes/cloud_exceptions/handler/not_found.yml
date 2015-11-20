@@ -31,14 +31,14 @@ http_interactions:
       Vary:
       - Accept-Encoding
       Date:
-      - Fri, 20 Nov 2015 12:05:14 GMT
+      - Fri, 20 Nov 2015 12:14:43 GMT
       Content-Length:
-      - '738'
+      - '737'
     body:
       encoding: UTF-8
       string: "{\"userName\":\"<CLC_USERNAME>\",\"accountAlias\":\"ALTD\",\"locationAlias\":\"VA1\",\"roles\":[\"AccountAdmin\",\"AccountViewer\",\"BillingAdmin\",\"DNSManager\",\"NetworkAdmin\",\"SecurityAdmin\",\"ServerAdmin\",\"ServerOperator\",\"ServerScheduler\"],\"bearerToken\":\"<CLC_BEARER_TOKEN>\"}"
     http_version: 
-  recorded_at: Fri, 20 Nov 2015 12:10:57 GMT
+  recorded_at: Fri, 20 Nov 2015 12:20:26 GMT
 - request:
     method: get
     uri: https://api.ctl.io/v2/datacenters/ALTD/not-real?groupLinks=true
@@ -64,12 +64,12 @@ http_interactions:
       Expires:
       - "-1"
       Date:
-      - Fri, 20 Nov 2015 12:05:15 GMT
+      - Fri, 20 Nov 2015 12:14:44 GMT
       Content-Length:
       - '0'
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Fri, 20 Nov 2015 12:10:58 GMT
+  recorded_at: Fri, 20 Nov 2015 12:20:26 GMT
 recorded_with: VCR 3.0.0

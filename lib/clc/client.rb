@@ -14,7 +14,6 @@ module Clc
         builder.response :json
         builder.response :logger, ::Logger.new(STDOUT), :bodies => true
         builder.adapter Faraday.default_adapter
-        builder.use Faraday::Response::RaiseError
       end
 
       response = @connection.post(
