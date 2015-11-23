@@ -60,4 +60,30 @@ describe Clc::Client do
       end
     end
   end
+
+  describe '#list_datacenters' do
+    context "with cloud success", with_vcr('client/list_datacenters/success') do
+      it 'returns a list of datatacenters' do
+        expect(subject.list_datacenters).to be_an(Array)
+      end
+    end
+  end
+
+  describe '#show_datacenter' do
+    context 'with group links option', with_vcr('client/show_datacenter/with_groups') do
+      it 'returns datacenters with group links' do
+        response = subject.show_datacenter('ca1', true)
+        group_link = response['links'].detect { |link| link['rel'] == 'group' }
+        expect(group_link).to be_an(Hash)
+      end
+    end
+
+    context 'without group links option', with_vcr('client/show_datacenter/without_groups') do
+      it 'returns datacenters without group links' do
+        response = subject.show_datacenter('ca1', false)
+        group_link = response['links'].detect { |link| link['rel'] == 'group' }
+        expect(group_link).to be_nil
+      end
+    end
+  end
 end

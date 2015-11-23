@@ -31,8 +31,8 @@ module Clc
       connection.get("v2/datacenters/#{@account}").body
     end
 
-    def show_datacenter(id)
-      connection.get("v2/datacenters/#{@account}/#{id}?groupLinks=true").body
+    def show_datacenter(id, group_links = true)
+      connection.get("v2/datacenters/#{@account}/#{id}?groupLinks=#{group_links}").body
     end
 
     def list_servers(datacenter_id = 'ca1')
