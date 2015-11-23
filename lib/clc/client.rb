@@ -141,6 +141,18 @@ module Clc
       connection.get("v2/operations/#{account}/status/#{id}").body.fetch('status')
     end
 
+    def show_group(id)
+      connection.get("v2/groups/#{account}/#{id}").body
+    end
+
+    def list_groups(datacenter_id)
+      datacenter = show_datacenter(datacenter_id, true)
+
+      root_group_link = datacenter['links'].detect { |link| link['rel'] == 'group' }
+
+      flatten_groups(show_group(root_group_link['id']))
+    end
+
     def wait_for_operation(id, timeout = 60)
       expire_at = Time.now + timeout
       loop do
@@ -154,6 +166,14 @@ module Clc
           raise "Operation status unknown: #{status}"
         end
       end
+    end
+
+    private
+
+    def flatten_groups(group)
+      child_groups = group.delete('groups')
+      return [group] unless child_groups && child_groups.any?
+      [group] + child_groups.map { |child| flatten_groups(child) }.flatten
     end
   end
 end

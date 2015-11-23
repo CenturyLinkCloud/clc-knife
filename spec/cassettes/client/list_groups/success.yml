@@ -1,0 +1,125 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/authentication/login
+    body:
+      encoding: UTF-8
+      string: "{\"username\":\"<CLC_USERNAME>\",\"password\":\"<CLC_PASSWORD>\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Tue, 24 Nov 2015 11:55:23 GMT
+      Content-Length:
+      - '739'
+    body:
+      encoding: UTF-8
+      string: "{\"userName\":\"<CLC_USERNAME>\",\"accountAlias\":\"ALTD\",\"locationAlias\":\"VA1\",\"roles\":[\"AccountAdmin\",\"AccountViewer\",\"BillingAdmin\",\"DNSManager\",\"NetworkAdmin\",\"SecurityAdmin\",\"ServerAdmin\",\"ServerOperator\",\"ServerScheduler\"],\"bearerToken\":\"<CLC_BEARER_TOKEN>\"}"
+    http_version: 
+  recorded_at: Tue, 24 Nov 2015 11:55:25 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/datacenters/ALTD/ca1?groupLinks=true
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Tue, 24 Nov 2015 11:55:24 GMT
+      Content-Length:
+      - '570'
+    body:
+      encoding: UTF-8
+      string: "{\"id\":\"ca1\",\"name\":\"CA1 - Canada (Vancouver)\",\"links\":[{\"rel\":\"self\",\"href\":\"/v2/datacenters/altd/ca1\"},{\"rel\":\"deploymentCapabilities\",\"href\":\"/v2/datacenters/altd/ca1/deploymentCapabilities\"},{\"rel\":\"loadBalancers\",\"href\":\"/v2/sharedLoadBalancers/altd/ca1\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"computeLimits\",\"href\":\"/v2/datacenters/altd/ca1/computeLimits\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"networkLimits\",\"href\":\"/v2/datacenters/altd/ca1/networkLimits\",\"verbs\":[\"GET\"]},{\"rel\":\"availableOvfs\",\"href\":\"/v2/vmImport/altd/ca1/available\",\"verbs\":[\"GET\"]},{\"rel\":\"group\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d\",\"id\":\"5ffda89a8ce6444baa8d28b9d1581e6d\",\"name\":\"CA1
+        Hardware\"},{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/billing\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}]}"
+    http_version: 
+  recorded_at: Tue, 24 Nov 2015 11:55:25 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/groups/ALTD/5ffda89a8ce6444baa8d28b9d1581e6d
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Tue, 24 Nov 2015 11:55:25 GMT
+      Content-Length:
+      - '1747'
+    body:
+      encoding: UTF-8
+      string: "{\"id\":\"5ffda89a8ce6444baa8d28b9d1581e6d\",\"name\":\"CA1 Hardware\",\"description\":\"CA1
+        Hardware\",\"locationId\":\"CA1\",\"type\":\"default\",\"status\":\"active\",\"serversCount\":0,\"groups\":[{\"id\":\"5f69973e31d34bbbb76b0e1542b3a93a\",\"name\":\"Archive\",\"description\":\"Pay
+        only for the storage consumed by the archived server. No compute or licensing
+        costs are incurred.\",\"locationId\":\"CA1\",\"type\":\"archive\",\"status\":\"active\",\"serversCount\":0,\"groups\":[],\"links\":[{\"rel\":\"self\",\"href\":\"/v2/groups/altd/5f69973e31d34bbbb76b0e1542b3a93a\",\"verbs\":[\"GET\",\"PATCH\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d\",\"id\":\"5ffda89a8ce6444baa8d28b9d1581e6d\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/5f69973e31d34bbbb76b0e1542b3a93a/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/5f69973e31d34bbbb76b0e1542b3a93a/billing\"}],\"changeInfo\":{\"createdBy\":\"idrabenia\",\"createdDate\":\"2015-03-26T23:59:26Z\",\"modifiedBy\":\"idrabenia\",\"modifiedDate\":\"2015-03-26T23:59:26Z\"},\"customFields\":[]},{\"id\":\"975a79f94b84452ea1c920325967a33c\",\"name\":\"Default
+        Group\",\"description\":\"The default location for new servers created in
+        your account\",\"locationId\":\"CA1\",\"type\":\"default\",\"status\":\"active\",\"serversCount\":0,\"groups\":[],\"links\":[{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"self\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d\",\"id\":\"5ffda89a8ce6444baa8d28b9d1581e6d\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/billing\"},{\"rel\":\"archiveGroupAction\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/archive\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}],\"changeInfo\":{\"createdBy\":\"aliaksandr.krasitski\",\"createdDate\":\"2015-10-14T14:57:35Z\",\"modifiedBy\":\"aliaksandr.krasitski\",\"modifiedDate\":\"2015-10-14T14:57:35Z\"},\"customFields\":[]},{\"id\":\"c03873856bdc4e5b81237ea03e448a9b\",\"name\":\"Templates\",\"description\":\"Custom
+        templates provide a set of hardware/software settings that can be used repeatedly
+        to create servers configured with the same settings.\",\"locationId\":\"CA1\",\"type\":\"templates\",\"status\":\"active\",\"serversCount\":0,\"groups\":[],\"links\":[{\"rel\":\"self\",\"href\":\"/v2/groups/altd/c03873856bdc4e5b81237ea03e448a9b\",\"verbs\":[\"GET\",\"PATCH\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d\",\"id\":\"5ffda89a8ce6444baa8d28b9d1581e6d\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/c03873856bdc4e5b81237ea03e448a9b/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/c03873856bdc4e5b81237ea03e448a9b/billing\"}],\"changeInfo\":{\"createdBy\":\"idrabenia\",\"createdDate\":\"2015-03-26T23:59:26Z\",\"modifiedBy\":\"idrabenia\",\"modifiedDate\":\"2015-03-26T23:59:26Z\"},\"customFields\":[]},{\"id\":\"2700d124f0194a819b6abefa30414aa7\",\"name\":\"test_ca1\",\"description\":\"desc\",\"locationId\":\"CA1\",\"type\":\"default\",\"status\":\"active\",\"serversCount\":0,\"groups\":[{\"id\":\"4fcc08b9ed3e42558766d3ec46518405\",\"name\":\"kiddo\",\"description\":\"kiddo\",\"locationId\":\"CA1\",\"type\":\"default\",\"status\":\"active\",\"serversCount\":0,\"groups\":[{\"id\":\"06bc3ce6347b408a8542fb9fdf4570c6\",\"name\":\"Kiddo
+        2\",\"description\":\"kid of kiddo\",\"locationId\":\"CA1\",\"type\":\"default\",\"status\":\"active\",\"serversCount\":0,\"groups\":[],\"links\":[{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"self\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405\",\"id\":\"4fcc08b9ed3e42558766d3ec46518405\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/billing\"},{\"rel\":\"archiveGroupAction\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/archive\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/06bc3ce6347b408a8542fb9fdf4570c6/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}],\"changeInfo\":{\"createdBy\":\"<CLC_USERNAME>\",\"createdDate\":\"2015-11-24T11:54:06Z\",\"modifiedBy\":\"<CLC_USERNAME>\",\"modifiedDate\":\"2015-11-24T11:54:06Z\"},\"customFields\":[]}],\"links\":[{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"self\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7\",\"id\":\"2700d124f0194a819b6abefa30414aa7\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/billing\"},{\"rel\":\"archiveGroupAction\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/archive\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/4fcc08b9ed3e42558766d3ec46518405/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}],\"changeInfo\":{\"createdBy\":\"<CLC_USERNAME>\",\"createdDate\":\"2015-11-23T09:33:39Z\",\"modifiedBy\":\"<CLC_USERNAME>\",\"modifiedDate\":\"2015-11-23T09:33:39Z\"},\"customFields\":[]}],\"links\":[{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"self\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d\",\"id\":\"5ffda89a8ce6444baa8d28b9d1581e6d\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/billing\"},{\"rel\":\"archiveGroupAction\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/archive\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/2700d124f0194a819b6abefa30414aa7/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}],\"changeInfo\":{\"createdBy\":\"<CLC_USERNAME>\",\"createdDate\":\"2015-11-19T09:16:42Z\",\"modifiedBy\":\"<CLC_USERNAME>\",\"modifiedDate\":\"2015-11-19T09:16:42Z\"},\"customFields\":[]}],\"links\":[{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"self\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d\",\"verbs\":[\"GET\",\"PATCH\"]},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/billing\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}],\"changeInfo\":{\"createdBy\":\"idrabenia\",\"createdDate\":\"2015-03-26T23:59:26Z\",\"modifiedBy\":\"idrabenia\",\"modifiedDate\":\"2015-03-26T23:59:26Z\"},\"customFields\":[]}"
+    http_version: 
+  recorded_at: Tue, 24 Nov 2015 11:55:26 GMT
+recorded_with: VCR 3.0.0

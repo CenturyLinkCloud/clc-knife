@@ -86,4 +86,23 @@ describe Clc::Client do
       end
     end
   end
+
+  describe '#show_group' do
+    context 'with cloud success', with_vcr('client/show_group/success') do
+      it 'returns groups details withing sub groups and their details' do
+        response = subject.show_group('5ffda89a8ce6444baa8d28b9d1581e6d')
+        expect(response['id']).to eq('5ffda89a8ce6444baa8d28b9d1581e6d')
+      end
+    end
+  end
+
+  describe '#list_groups' do
+    context 'within datacenter', with_vcr('client/list_groups/success') do
+      it 'returns a list of datacenters groups' do
+        response = subject.list_groups('ca1')
+        expect(response).to be_an(Array)
+        expect(response.map { |group| group['groups'] } ).to all(be_nil)
+      end
+    end
+  end
 end
