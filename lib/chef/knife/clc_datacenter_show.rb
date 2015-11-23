@@ -7,10 +7,17 @@ class Chef
 
       banner 'knife clc datacenter show (options)'
 
+      option :group_links,
+        :short => "-g",
+        :long => "--group-links",
+        :boolean => true,
+        :default => false,
+        :description => "Determine whether link collections are returned for each group"
+
       def run
         $stdout.sync = true
 
-        datacenter = connection.show_datacenter(name_args[0])
+        datacenter = connection.show_datacenter(name_args[0], config[:group_links])
 
         puts "#{ui.color("ID:", :green)} #{datacenter['id']}"
         puts "#{ui.color("Name:", :green)} #{datacenter['name']}"
