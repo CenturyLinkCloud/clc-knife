@@ -1,0 +1,108 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/authentication/login
+    body:
+      encoding: UTF-8
+      string: "{\"username\":\"<CLC_USERNAME>\",\"password\":\"<CLC_PASSWORD>\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Wed, 25 Nov 2015 14:03:56 GMT
+      Content-Length:
+      - '741'
+    body:
+      encoding: UTF-8
+      string: "{\"userName\":\"<CLC_USERNAME>\",\"accountAlias\":\"ALTD\",\"locationAlias\":\"VA1\",\"roles\":[\"AccountAdmin\",\"AccountViewer\",\"BillingAdmin\",\"DNSManager\",\"NetworkAdmin\",\"SecurityAdmin\",\"ServerAdmin\",\"ServerOperator\",\"ServerScheduler\"],\"bearerToken\":\"<CLC_BEARER_TOKEN>\"}"
+    http_version: 
+  recorded_at: Wed, 25 Nov 2015 14:09:55 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/datacenters/ALTD/ca1/deploymentCapabilities
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Wed, 25 Nov 2015 14:03:59 GMT
+      Content-Length:
+      - '1557'
+    body:
+      encoding: UTF-8
+      string: "{\"dataCenterEnabled\":true,\"importVMEnabled\":true,\"supportsPremiumStorage\":true,\"supportsSharedLoadBalancer\":true,\"supportsBareMetalServers\":false,\"deployableNetworks\":[{\"name\":\"vlan_2348_10.50.48\",\"networkId\":\"283f670e96f445b486569a2d4763609e\",\"type\":\"private\",\"accountID\":\"ALTD\"}],\"templates\":[{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2922\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        CLC Stemcell 2922\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3012\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        CLC Stemcell 3012\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3026\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        CLC Stemcell 3026\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        OpenStack CLC Stemcell\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-STEMCELL\",\"osType\":\"ubuntu_64Bit\",\"description\":\"BOSH
+        Stemcell Template\",\"storageSizeGB\":20,\"capabilities\":[],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3062\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        Ubuntu Trusty Stemcell 3062\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3074\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        Ubuntu Trusty Stemcell 3074\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3094\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        Ubuntu Trusty Stemcell 3094\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_3100\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        Ubuntu Trusty Stemcell 3100\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"VBLK-100-TEMPLATE\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH
+        Volume (Internal)\",\"storageSizeGB\":3,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2989\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2989\",\"storageSizeGB\":0,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":true},{\"name\":\"CENTOS-5-64-TEMPLATE\",\"osType\":\"centOS5_64Bit\",\"description\":\"CentOS
+        5 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"CENTOS-6-64-TEMPLATE\",\"osType\":\"centOS6_64Bit\",\"description\":\"CentOS
+        6 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"DEBIAN-6-64-TEMPLATE\",\"osType\":\"debian6_64Bit\",\"description\":\"Debian
+        6 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"DEBIAN-7-64-TEMPLATE\",\"osType\":\"debian7_64Bit\",\"description\":\"Debian
+        7 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"OPENVPN-CENT6-TEMPLATE\",\"osType\":\"centOS_32Bit\",\"description\":\"Open
+        VPN Template\",\"storageSizeGB\":16,\"capabilities\":[],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"PXE-TEMPLATE\",\"osType\":\"pxeBoot\",\"description\":\"PXE
+        Boot [EXPERIMENTAL]\",\"storageSizeGB\":0,\"capabilities\":[],\"reservedDrivePaths\":[\"\"],\"apiOnly\":false},{\"name\":\"RHEL-5-64-TEMPLATE\",\"osType\":\"redHat5_64Bit\",\"description\":\"RedHat
+        Enterprise Linux 5 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"RHEL-6-64-TEMPLATE\",\"osType\":\"redHat6_64Bit\",\"description\":\"RedHat
+        Enterprise Linux 6 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[\"cpuAutoscale\",\"importVM\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"RHEL-7-64-TEMPLATE\",\"osType\":\"redHat7_64Bit\",\"description\":\"RedHat
+        Enterprise Linux 7 | 64-bit\",\"storageSizeGB\":16,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"UBUNTU-12-64-TEMPLATE\",\"osType\":\"ubuntu12_64Bit\",\"description\":\"Ubuntu
+        12 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"UBUNTU-14-64-TEMPLATE\",\"osType\":\"ubuntu14_64Bit\",\"description\":\"Ubuntu
+        14 | 64-bit\",\"storageSizeGB\":17,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"bin\",\"boot\",\"build\",\"cdrom\",\"compat\",\"dist\",\"dev\",\"entropy\",\"etc\",\"home\",\"initrd.img\",\"lib\",\"lib64\",\"libexec\",\"lost+found\",\"media\",\"mnt\",\"opt\",\"proc\",\"root\",\"sbin\",\"selinux\",\"srv\",\"sys\",\"tmp\",\"usr\",\"var\",\"vmlinuz\"],\"apiOnly\":false},{\"name\":\"WIN2008R2DTC-64\",\"osType\":\"windows2008R2DataCenter_64bit\",\"description\":\"Windows
+        2008 R2 Datacenter Edition | 64-bit\",\"storageSizeGB\":60,\"capabilities\":[\"importVM\"],\"reservedDrivePaths\":[\"a\",\"b\",\"c\",\"d\"],\"drivePathLength\":1,\"apiOnly\":false},{\"name\":\"WIN2008R2ENT-64\",\"osType\":\"windows2008R2Enterprise_64bit\",\"description\":\"Windows
+        2008 R2 Enterprise | 64-bit\",\"storageSizeGB\":60,\"capabilities\":[],\"reservedDrivePaths\":[\"a\",\"b\",\"c\",\"d\"],\"drivePathLength\":1,\"apiOnly\":false},{\"name\":\"WIN2008R2STD-64\",\"osType\":\"windows2008R2Standard_64bit\",\"description\":\"Windows
+        2008 R2 Standard | 64-bit\",\"storageSizeGB\":60,\"capabilities\":[],\"reservedDrivePaths\":[\"a\",\"b\",\"c\",\"d\"],\"drivePathLength\":1,\"apiOnly\":false},{\"name\":\"WIN2012DTC-64\",\"osType\":\"windows2012DataCenter_64Bit\",\"description\":\"Windows
+        2012 Datacenter Edition | 64-bit\",\"storageSizeGB\":60,\"capabilities\":[\"cpuAutoscale\"],\"reservedDrivePaths\":[\"a\",\"b\",\"c\",\"d\"],\"drivePathLength\":1,\"apiOnly\":false},{\"name\":\"WIN2012R2DTC-64\",\"osType\":\"windows2012R2DataCenter_64Bit\",\"description\":\"Windows
+        2012 R2 Datacenter Edition | 64-bit\",\"storageSizeGB\":60,\"capabilities\":[\"cpuAutoscale\",\"importVM\"],\"reservedDrivePaths\":[\"a\",\"b\",\"c\",\"d\"],\"drivePathLength\":1,\"apiOnly\":false}],\"importableOSTypes\":[{\"id\":38,\"description\":\"RedHat
+        Enterprise Linux 6 64-bit\",\"labProductCode\":\"SOFT-LAB-REDHAT-CPU\",\"premiumProductCode\":\"SOFT-PREM-REDHAT-CPU\",\"type\":\"RedHat6_64Bit\"},{\"id\":45,\"description\":\"Windows
+        2008 R2 Datacenter 64-bit\",\"labProductCode\":\"SOFT-LAB-WINSRVSTD-CPU\",\"premiumProductCode\":\"SOFT-PREM-WINSRVSTD-CPU\",\"type\":\"Windows2008R2DataCenter_64bit\"},{\"id\":28,\"description\":\"Windows
+        2012R2 Datacenter 64-bit\",\"labProductCode\":\"SOFT-LAB-WINSRVSTD-CPU\",\"premiumProductCode\":\"SOFT-PREM-WINSRVSTD-CPU\",\"type\":\"Windows2012R2DataCenter_64Bit\"}]}"
+    http_version: 
+  recorded_at: Wed, 25 Nov 2015 14:09:57 GMT
+recorded_with: VCR 3.0.0
