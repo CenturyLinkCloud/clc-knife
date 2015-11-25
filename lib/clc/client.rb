@@ -112,7 +112,7 @@ module Clc
 
     def list_templates(datacenter_id)
       url = "/v2/datacenters/#{account}/#{datacenter_id}/deploymentCapabilities"
-      connection.get(url).body.fetch('template')
+      connection.get(url).body.fetch('templates')
     end
 
     # Possible options?...

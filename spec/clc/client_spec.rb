@@ -62,7 +62,7 @@ describe Clc::Client do
   end
 
   describe '#list_datacenters' do
-    context "with cloud success", with_vcr('client/list_datacenters/success') do
+    context 'with cloud success', with_vcr('client/list_datacenters/success') do
       it 'returns a list of datatacenters' do
         expect(subject.list_datacenters).to be_an(Array)
       end
@@ -102,6 +102,32 @@ describe Clc::Client do
         response = subject.list_groups('ca1')
         expect(response).to be_an(Array)
         expect(response.map { |group| group['groups'] } ).to all(be_nil)
+      end
+    end
+  end
+
+  describe '#list_templates' do
+    context 'when datacenter specified' do
+      context 'and exists', with_vcr('client/list_templates/datacenter_exists') do
+        let(:datacenter_id) { 'ca1' }
+
+        it 'returns an Array' do
+          expect(client.list_templates('ca1')).to be_an(Array)
+        end
+      end
+
+      context 'and does not exist', with_vcr('client/list_templates/datacenter_does_not_exist') do
+        let(:datacenter_id) { 'does-not-exist' }
+
+        it 'fails' do
+          expect { client.list_templates(datacenter_id) }.to raise_error
+        end
+      end
+    end
+
+    context 'when datacenter is not specified', with_vcr('client/list_templates/without_datacenter') do
+      it 'fails' do
+        expect { client.list_templates }.to raise_error(ArgumentError)
       end
     end
   end
