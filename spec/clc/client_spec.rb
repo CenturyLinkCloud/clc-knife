@@ -101,7 +101,7 @@ describe Clc::Client do
       it 'returns a list of datacenters groups' do
         response = subject.list_groups('ca1')
         expect(response).to be_an(Array)
-        expect(response.map { |group| group['groups'] } ).to all(be_nil)
+        expect(response.map { |group| group['groups'] }).to all(be_nil)
       end
     end
   end

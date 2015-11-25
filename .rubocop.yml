@@ -5,6 +5,8 @@ AllCops:
     - "spec/spec_helper.rb"
     - "Rakefile"
   UseCache: false
+Style/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
 Style/CollectionMethods:
   Description: Preferred collection methods.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#map-find-select-reduce-size
