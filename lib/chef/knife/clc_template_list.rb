@@ -10,11 +10,39 @@ class Chef
       def run
         $stdout.sync = true
 
-        templates = connection.list_templates('ca1')
+        templates = connection.list_templates('ca1').sort { |a, b| a['osType'] <=> b['osType'] }
 
-        all_properties = ['name', 'osType', 'description', 'storageSizeGB', 'capabilities', 'apiOnly']
+        headers = {
+          'name' => 'Name',
+          'osType' => 'OS Type',
+          'description' => 'Description',
+          'storageSizeGB' => 'Storage',
+          'capabilities' => 'Capabilities',
+          'apiOnly' => 'Api Only'
+        }
 
-        puts Formatador.display_table(templates, all_properties[0..2])
+        fields = headers.keys
+
+        filters = {
+          'storageSizeGB' => ->(size) { "#{size} GB".rjust(7) },
+          'apiOnly' => ->(api_flag) { (api_flag ? '+' : '-').center(9) },
+          'capabilities' => ->(capabilities) { capabilities.empty? ? '-' : capabilities.join(', ') }
+        }
+
+        max_fields = {
+          'description' => 0.2,
+          'storageSizeGB' => 7,
+          'capabilities' => 25,
+          'apiOnly' => 9
+        }
+
+        puts Hirb::Helpers::AutoTable.render(templates, {
+          :headers => headers,
+          :fields => fields,
+          :filters => filters,
+          :max_fields => max_fields,
+          :resize => false
+        })
       end
     end
   end
