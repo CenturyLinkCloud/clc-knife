@@ -9,7 +9,7 @@ class Chef
       def self.included(klass)
         klass.class_eval do
           def connection
-            @connection ||= ::Clc::Client.new
+            @connection ||= ::Clc::Client.new(:verbosity => Chef::Config[:verbosity])
           end
         end
       end
