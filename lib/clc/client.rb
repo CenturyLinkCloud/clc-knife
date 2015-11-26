@@ -12,9 +12,10 @@ module Clc
         builder.use Clc::CloudExceptions::Handler
         builder.request :json
         builder.response :json
-        builder.response :logger, ::Logger.new(STDOUT), :bodies => true
         builder.adapter Faraday.default_adapter
       end
+
+      setup_logging(@connection.builder, params[:verbosity]) if params[:verbosity]
 
       response = @connection.post(
         '/v2/authentication/login',
@@ -169,6 +170,15 @@ module Clc
     end
 
     private
+
+    def setup_logging(builder, verbosity)
+      case verbosity
+      when 1
+        builder.response :logger, ::Logger.new(STDOUT)
+      when 2
+        builder.response :logger, ::Logger.new(STDOUT), :bodies => true
+      end
+    end
 
     def flatten_groups(group)
       child_groups = group.delete('groups')
