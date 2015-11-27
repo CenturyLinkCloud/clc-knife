@@ -9,10 +9,32 @@ class Chef
 
       def run
         $stdout.sync = true
+        render
+      end
 
-        datacenters = connection.list_datacenters
+      def fields
+        %w(name id)
+      end
 
-        puts Formatador.display_table(datacenters, ['id', 'name'])
+      def headers
+        {
+          'name' => 'Name',
+          'id' => 'ID'
+        }
+      end
+
+      def data
+        connection.list_datacenters
+      end
+
+      def render
+        output = Hirb::Helpers::AutoTable.render(data,
+          :fields => fields,
+          :headers => headers,
+          :resize => false,
+          :description => false)
+
+        puts output
       end
     end
   end
