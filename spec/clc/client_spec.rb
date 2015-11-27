@@ -120,7 +120,7 @@ describe Clc::Client do
         let(:datacenter_id) { 'does-not-exist' }
 
         it 'fails' do
-          expect { client.list_templates(datacenter_id) }.to raise_error
+          expect { client.list_templates(datacenter_id) }.to raise_error(Clc::CloudExceptions::Error)
         end
       end
     end
