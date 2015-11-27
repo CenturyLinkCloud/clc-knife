@@ -10,9 +10,11 @@ describe Chef::Knife::ClcTemplateList do
     let(:connection) { double }
 
     before(:each) do
-      command.config[:clc_datacenter] = 'ca1'
       allow(command).to receive(:connection) { connection }
-      allow(command).to receive(:exit)
+      allow(command).to receive(:exit) { raise 'SystemExit' }
+
+      command.config[:clc_datacenter] = 'ca1'
+
       allow(connection).to receive(:list_templates) { [] }
     end
 
@@ -25,14 +27,12 @@ describe Chef::Knife::ClcTemplateList do
         before(:each) { command.config.delete(:clc_datacenter) }
 
         context 'considering system status' do
-          before(:each) do
-            allow(command).to receive(:exit).and_call_original
-          end
-
-          it { is_expected.to raise_error(SystemExit) }
+          it { is_expected.to raise_error(/SystemExit/) }
         end
 
         context 'considering output' do
+          before(:each) { allow(command).to receive(:exit) }
+
           it { is_expected.to output(/knife clc template list/i).to_stdout_from_any_process }
           it { is_expected.to output(/required/i).to_stderr_from_any_process }
         end

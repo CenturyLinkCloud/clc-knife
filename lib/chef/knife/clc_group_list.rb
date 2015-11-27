@@ -5,7 +5,7 @@ class Chef
     class ClcGroupList < Knife
       include Knife::ClcBase
 
-      banner 'knife clc template list (options)'
+      banner 'knife clc group list (options)'
 
       option :clc_datacenter,
         :long => '--datacenter ID',
@@ -30,7 +30,7 @@ class Chef
           errors << 'Datacenter option is required'
         end
 
-        unless ['tree', 'table'].include?(config[:clc_view])
+        unless %w(tree table).include?(config[:clc_view])
           errors << 'View parameter should be either table or a tree'
         end
 
@@ -70,30 +70,6 @@ class Chef
         }
       end
 
-      # {"id"=>"5ffda89a8ce6444baa8d28b9d1581e6d",
-      #  "name"=>"CA1 Hardware",
-      #  "description"=>"CA1 Hardware",
-      #  "locationId"=>"CA1",
-      #  "type"=>"default",
-      #  "status"=>"active",
-      #  "serversCount"=>0,
-      #  "customFields"=>[],
-      #  "links"=>
-      #    [{"rel"=>"createGroup", "href"=>"/v2/groups/altd", "verbs"=>["POST"]}}
-      # {"id"=>"5f69973e31d34bbbb76b0e1542b3a93a",
-      #   "name"=>"Archive",
-      #   "description"=>"Pay only for the storage consumed by the archived server. No compute or licensing costs are incurred.",
-      #   "locationId"=>"CA1",
-      #   "type"=>"archive",
-      #   "status"=>"active",
-      #   "serversCount"=>0,
-      #   "links"=>[{"rel"=>"self", "href"=>"/v2/groups/altd/5f69973e31d34bbbb76b0e1542b3a93a", "verbs"=>["GET", "PATCH"]},
-      #   {"rel"=>"parentGroup", "href"=>"/v2/groups/altd/5ffda89a8ce6444baa8d28b9d1581e6d", "id"=>"5ffda89a8ce6444baa8d28b9d1581e6d"},
-      #   {"rel"=>"defaults", "href"=>"/v2/groups/altd/5f69973e31d34bbbb76b0e1542b3a93a/defaults", "verbs"=>["GET", "POST"]},
-      #   {"rel"=>"billing", "href"=>"/v2/groups/altd/5f69973e31d34bbbb76b0e1542b3a93a/billing"}],
-      #   "changeInfo"=>{"createdBy"=>"idrabenia", "createdDate"=>"2015-03-26T23:59:26Z",
-      #     "modifiedBy"=>"idrabenia", "modifiedDate"=>"2015-03-26T23:59:26Z"}, "customFields"=>[]}
-
       def render
         case config[:clc_view]
         when 'tree' then render_tree
@@ -121,6 +97,7 @@ class Chef
 
         root = data.find { |group| group['parentId'].nil? }
 
+        return unless root
         output = Hirb::Helpers::ParentChildTree.render(root,
           :type => :directory,
           :value_method => display_value,
