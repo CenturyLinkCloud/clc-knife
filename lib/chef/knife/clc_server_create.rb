@@ -133,17 +133,7 @@ class Chef
 
       attr_accessor :data
 
-      def errors
-        @errors ||= []
-      end
-
-      def run
-        $stdout.sync = true
-        parse_and_validate_parameters!
-        execute
-      end
-
-      def parse_and_validate_parameters!
+      def parse_and_validate_parameters
         unless config[:clc_name]
           errors << 'Name is required'
         end
@@ -161,7 +151,7 @@ class Chef
         end
 
         unless config[:clc_memory]
-          errors << 'Number of memory GB is required'
+          errors << 'Number of memory GBs is required'
         end
 
         unless config[:clc_type]
@@ -210,16 +200,6 @@ class Chef
             errors << 'Invalid protocol'
           end
         end && config[:clc_allowed_protocols].flatten!
-
-        check_for_errors!
-      end
-
-      def check_for_errors!
-        unless errors.empty?
-          errors.each { |message| ui.error message }
-          show_usage
-          exit 1
-        end
       end
 
       def prepare_launch_params
@@ -260,25 +240,27 @@ class Chef
           self.data = connection.follow(links['resource'])
         else
           ui.info 'Launch request has been sent'
-          ui.info "You can check server status later with 'knife clc server show #{links['resource']['id']} --uuid'"
         end
 
         if config[:clc_allowed_protocols]
-          ui.info 'Waiting for server to show up...'
-          self.data ||= connection.follow(links['resource'])
-
           ui.info 'Requesting public IP...'
-          links = connection.add_public_ip(data['id'], config[:clc_allowed_protocols])
+          self.data ||= connection.follow(links['resource'])
+          ip_links = connection.add_public_ip(data['id'], config[:clc_allowed_protocols])
           if config[:clc_wait]
-            connection.wait_for(links['operation']) { putc '.' }
+            connection.wait_for(ip_links['operation']) { putc '.' }
             ui.info "\n"
             ui.info "Public IP has been assigned"
+            self.data = connection.follow(links['resource'])
           else
-            ui.info "You can check server status later with 'knife clc server show #{links['resource']['id']} --uuid'"
+            ui.info 'Public IP request has been sent'
           end
         end
 
-        render_server if data
+        if config[:clc_wait]
+          render_server
+        else
+          ui.info "You can check server status later with 'knife clc server show #{links['resource']['id']} --uuid'"
+        end
       end
 
       def fields
