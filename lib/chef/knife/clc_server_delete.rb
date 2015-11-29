@@ -11,13 +11,26 @@ class Chef
         :boolean => true,
         :default => false
 
-      banner 'knife clc server delete (options)'
+      banner 'knife clc server delete SERVER_ID (options)'
 
-      def run
-        $stdout.sync = true
+      def parse_and_validate_parameters
+        unless name_args[0]
+          errors << 'Server ID is required'
+        end
+      end
 
+      def execute
+        ui.info 'Requesting server deletion...'
         links = connection.delete_server(name_args[0])
-        connection.wait_for(links['operation']) { putc '.' } if config[:clc_wait]
+
+        if config[:clc_wait]
+          connection.wait_for(links['operation']) { putc '.' }
+          ui.info "\n"
+          ui.info 'Server has been deleted'
+        else
+          ui.info 'Deletion request has been sent'
+          ui.info "You can check server status later with 'knife clc server show #{name_args[0]}'"
+        end
       end
     end
   end
