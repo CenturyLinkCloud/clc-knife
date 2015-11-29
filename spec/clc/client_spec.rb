@@ -1,3 +1,8 @@
+shared_examples_for 'async operation' do
+  it { is_expected.to be_a(Hash) }
+  it { is_expected.to include('operation') }
+end
+
 describe Clc::Client do
   subject(:client) { Clc::Client.new }
 
@@ -27,36 +32,58 @@ describe Clc::Client do
       }
     end
 
-    context 'with valid params', with_vcr('client/create_server/valid', :pooling) do
-      let(:server) { client.create_server(params) }
+    context 'with valid params', with_vcr('client/create_server/valid') do
+      subject(:creation_response) { client.create_server(params) }
 
-      it 'returns a Hash' do
-        expect(server).to be_a(Hash)
+      it_behaves_like 'async operation'
+
+      it 'returns link to the queued server' do
+        expect(creation_response).to include('resource')
       end
 
-      it 'passes specified name to the cloud' do
-        expect(server['name']).to include(params['name'].upcase)
+      it 'creates resource with all passed parameters' do
+        creation_response
+
+        expect(WebMock).to have_requested(:post, %r{/v2/servers/#{client.account}})
+          .with(:body => params)
+      end
+    end
+  end
+
+  describe '#delete_server' do
+    context 'with valid params', with_vcr('client/delete_server/valid') do
+      subject(:deletion_response) { client.delete_server(id) }
+
+      let(:id) { 'ca1altdreq17' }
+
+      it_behaves_like 'async operation'
+
+      it 'deletes resource' do
+        deletion_response
+        expect(WebMock).to have_requested(:delete, %r{/v2/servers/#{client.account}/#{id}})
+      end
+    end
+  end
+
+  describe '#add_public_ip' do
+    context 'with valid params', with_vcr('client/add_public_ip/valid') do
+      subject(:ip_assignment_response) { client.add_public_ip(server_id, ports) }
+
+      let(:server_id) { 'ca1altdtest34' }
+
+      let(:ports) do
+        [{ 'protocol' => 'tcp', 'port' => 23 }]
       end
 
-      it 'places server in specified group' do
-        expect(server['groupId']).to eq(params['groupId'])
-      end
+      it_behaves_like 'async operation'
 
-      it 'launches server with specified template' do
-        expect(server['os']).to eq('centOS6_64Bit')
-      end
+      it 'passes specified ports' do
+        ip_assignment_response
 
-      it 'sets specified number of CPUs' do
-        expect(server['details']['cpu']).to eq(params['cpu'])
-      end
+        creation_url = %r{/v2/servers/#{client.account}/#{server_id}/publicIPAddresses}
 
-      it 'sets specified amount of RAM' do
-        expected_memory = params['memoryGB'] * 1024
-        expect(server['details']['memoryMB']).to eq(expected_memory)
-      end
-
-      it 'launches server of specified type' do
-        expect(server['type']).to eq(params['type'])
+        expect(WebMock).to have_requested(:post, creation_url)
+          .with(:body => { 'ports' => ports })
       end
     end
   end

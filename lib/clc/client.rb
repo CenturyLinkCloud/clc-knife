@@ -73,7 +73,7 @@ module Clc
 
     def delete_server(id)
       body = connection.delete("v2/servers/#{account}/#{id}").body
-      async_response([body])
+      async_response(body['links'])
     end
 
     # TODO: Reset is quicker. Probably 'hard-reset'
