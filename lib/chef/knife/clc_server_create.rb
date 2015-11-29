@@ -257,6 +257,12 @@ class Chef
         end
 
         if config[:clc_wait]
+          credentials = connection.follow(data['links'].find { |link| link['rel'] == 'credentials' })
+          ip_address_info = data['details']['ipAddresses'].find { |address| address['public'] }
+
+          self.data['publicIp'] = ip_address_info && ip_address_info['public']
+          self.data.merge!(credentials)
+
           render_server
         else
           ui.info "You can check server status later with 'knife clc server show #{links['resource']['id']} --uuid'"
@@ -264,7 +270,7 @@ class Chef
       end
 
       def fields
-        %w(id name description status groupId locationId osType type storageType)
+        %w(id name description status groupId locationId osType type storageType publicIp userName password)
       end
 
       def headers
@@ -277,7 +283,10 @@ class Chef
           'locationId' => 'Location',
           'osType' => 'OS Type',
           'type' => 'Type',
-          'storageType' => 'Storage Type'
+          'storageType' => 'Storage Type',
+          'publicIp' => 'Public IP',
+          'userName' => 'Username',
+          'password' => 'Password'
         }
       end
 

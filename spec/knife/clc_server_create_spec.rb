@@ -15,7 +15,9 @@ describe Chef::Knife::ClcServerCreate do
 
       allow(command).to receive(:connection) { connection }
       allow(command.ui).to receive(:info) { |msg| puts msg }
-      allow(connection).to receive(:follow) { server }
+      allow(connection).to receive(:follow) do |link|
+        link['rel'] == 'credentials' ? credentials : server
+      end
 
       allow(connection).to receive(:create_server) do
         { 'operation' => server_creation_link, 'resource' => server_link }
@@ -110,6 +112,10 @@ describe Chef::Knife::ClcServerCreate do
       }
     end
 
+    let(:credentials) do
+      { 'userName' => 'root', 'password' => 'somePassword' }
+    end
+
     context 'without waiting and without public IP' do
       before(:each) do
         command.config.delete(:clc_wait)
@@ -143,7 +149,13 @@ describe Chef::Knife::ClcServerCreate do
       it { is_expected.to output(/server has been launched/i).to_stdout_from_any_process }
       it { is_expected.to output(/ip has been assigned/i).to_stdout_from_any_process }
       it { is_expected.to output(/Name/).to_stdout_from_any_process }
+      it { is_expected.to output(/Username/).to_stdout_from_any_process }
+      it { is_expected.to output(/Password/).to_stdout_from_any_process }
+      it { is_expected.to output(/Public IP/).to_stdout_from_any_process }
       it { is_expected.to output(/#{server['name']}/).to_stdout_from_any_process }
+      it { is_expected.to output(/#{Regexp.quote(server['details']['ipAddresses'].last['public'])}/).to_stdout_from_any_process }
+      it { is_expected.to output(/#{credentials['userName']}/).to_stdout_from_any_process }
+      it { is_expected.to output(/#{credentials['password']}/).to_stdout_from_any_process }
       it { is_expected.to_not output(/knife clc/).to_stdout_from_any_process }
     end
   end
