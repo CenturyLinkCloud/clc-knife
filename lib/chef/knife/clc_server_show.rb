@@ -7,10 +7,15 @@ class Chef
 
       banner 'knife clc server show (options)'
 
+      option :clc_uuid,
+        :long => '--uuid',
+        :boolean => true,
+        :default => false
+
       def run
         $stdout.sync = true
 
-        server = connection.show_server(name_args[0])
+        server = connection.show_server(name_args[0], config[:clc_uuid])
 
         puts server.inspect
 

@@ -52,8 +52,8 @@ module Clc
       end
     end
 
-    def show_server(id)
-      connection.get("/v2/servers/#{@account}/#{id}").body
+    def show_server(id, uuid = false)
+      connection.get("/v2/servers/#{@account}/#{id}?uuid=#{uuid}").body
     end
 
     def find_server_links(groups)
@@ -66,19 +66,14 @@ module Clc
     end
 
     # TODO: Takes a lot of time
-    def create_server(params = {})
-      operation_info = connection.post("/v2/servers/#{account}", params).body
-      operation = operation_info['links'].find { |link| link['rel'] == 'status' }
-      server_link = operation_info['links'].find { |link| link['rel'] == 'self' }
-      wait_for_operation(operation['id'], 360)
-
-      connection.get(server_link['href']).body
+    def create_server(params)
+      body = connection.post("/v2/servers/#{account}", params).body
+      async_response(body['links'])
     end
 
     def delete_server(id)
-      operation_info = connection.delete("v2/servers/#{account}/#{id}").body
-      operation = operation_info['links'].find { |link| link['rel'] == 'status' }
-      wait_for_operation(operation['id'])
+      body = connection.delete("v2/servers/#{account}/#{id}").body
+      async_response(body['links'])
     end
 
     # TODO: Reset is quicker. Probably 'hard-reset'
@@ -116,19 +111,13 @@ module Clc
       connection.get(url).body.fetch('templates')
     end
 
-    # Possible options?...
-    # 1. Select internal IP to map to public. Optional
-    # 2. Ports which are allowed to be accessed. Required.
-    # 3. Source limitations. Optional
-
-    # Protocol values: "tcp", "udp", or "icmp".
-    # TODO: Takes quite a lot of time...
-    def add_public_ip(server_id)
-      operation = connection.post(
+    def add_public_ip(server_id, ports)
+      body = connection.post(
         "/v2/servers/#{account}/#{server_id}/publicIPAddresses",
-        'ports' => [{ 'protocol' => 'tcp', 'port' => '80' }]
+        'ports' => ports
       ).body
-      wait_for_operation(operation['id'])
+
+      async_response([body])
     end
 
     # TODO: Takes quite a lot of time...
@@ -154,6 +143,29 @@ module Clc
       flatten_groups(show_group(root_group_link['id']))
     end
 
+    def follow(link)
+      connection.get(link['href']).body
+    end
+
+    def wait_for(operation_link, timeout = 360)
+      expire_at = Time.now + timeout
+      loop do
+        operation = follow(operation_link)
+        status = operation['status']
+        yield status if block_given?
+
+        case status
+        when 'succeeded' then return true
+        when 'failed', 'unknown' then raise 'Operation Failed' # reason?
+        when 'executing', 'resumed', 'notStarted'
+          raise 'Operation takes too much time to complete' if Time.now > expire_at
+          next sleep(2)
+        else
+          raise "Operation status unknown: #{status}"
+        end
+      end
+    end
+
     def wait_for_operation(id, timeout = 60)
       expire_at = Time.now + timeout
       loop do
@@ -170,6 +182,13 @@ module Clc
     end
 
     private
+
+    def async_response(links)
+      {
+        'resource' => links.find { |link| link['rel'] == 'self' },
+        'operation' => links.find { |link| link['rel'] == 'status' }
+      }.keep_if { |_, value| value }
+    end
 
     def setup_logging(builder, verbosity)
       case verbosity

@@ -2,6 +2,7 @@ require 'coveralls'
 Coveralls.wear!
 
 require 'vcr'
+require 'webmock/rspec'
 require 'clc'
 require 'pry'
 
