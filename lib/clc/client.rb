@@ -68,42 +68,38 @@ module Clc
     # TODO: Takes a lot of time
     def create_server(params)
       body = connection.post("/v2/servers/#{account}", params).body
-      async_response(body['links'])
+      async_response(body)
     end
 
     def delete_server(id)
       body = connection.delete("v2/servers/#{account}/#{id}").body
-      async_response(body['links'])
+      async_response(body)
     end
 
     # TODO: Reset is quicker. Probably 'hard-reset'
     def reset_server(id)
       response = connection.post("/v2/operations/#{account}/servers/reset", [id])
-      operation_info = response.body.first
-      operation = operation_info['links'].find { |link| link['rel'] == 'status' }
-      wait_for_operation(operation['id'])
+      body = response.body.first
+      async_response(body)
     end
 
     # TODO: Reboot is slower. Looks like OS-level reboot
     def reboot_server(id)
       response = connection.post("/v2/operations/#{account}/servers/reboot", [id])
-      operation_info = response.body.first
-      operation = operation_info['links'].find { |link| link['rel'] == 'status' }
-      wait_for_operation(operation['id'])
+      body = response.body.first
+      async_response(body)
     end
 
     def power_on_server(id)
       response = connection.post("/v2/operations/#{account}/servers/powerOn", [id])
-      operation_info = response.body.first
-      operation = operation_info['links'].find { |link| link['rel'] == 'status' }
-      wait_for_operation(operation['id'])
+      body = response.body.first
+      async_response(body)
     end
 
     def power_off_server(id)
       response = connection.post("/v2/operations/#{account}/servers/powerOff", [id])
-      operation_info = response.body.first
-      operation = operation_info['links'].find { |link| link['rel'] == 'status' }
-      wait_for_operation(operation['id'])
+      body = response.body.first
+      async_response(body)
     end
 
     def list_templates(datacenter_id)
@@ -117,7 +113,7 @@ module Clc
         'ports' => ports
       ).body
 
-      async_response([body])
+      async_response('links' => [body])
     end
 
     # TODO: Takes quite a lot of time...
@@ -187,7 +183,21 @@ module Clc
 
     private
 
-    def async_response(links)
+    def async_response(body)
+      check_errors(body)
+      extract_links(body)
+    end
+
+    def check_errors(body)
+      if error = body['errorMessage']
+        raise error
+      elsif body['isQueued'] == false
+        raise 'Cloud refused to queue the operation'
+      end
+    end
+
+    def extract_links(body)
+      links = body['links']
       {
         'resource' => links.find { |link| link['rel'] == 'self' },
         'operation' => links.find { |link| link['rel'] == 'status' }
