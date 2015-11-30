@@ -123,6 +123,7 @@ describe Chef::Knife::ClcServerCreate do
       end
 
       it { is_expected.to output(/launch request has been sent/i).to_stdout_from_any_process }
+      it { is_expected.to output(/knife clc operation show #{server_creation_link['id']}/).to_stdout_from_any_process }
       it { is_expected.to output(/knife clc server show #{server_link['id']} --uuid/).to_stdout_from_any_process }
       it { is_expected.to_not output(/#{server['id']}/).to_stdout_from_any_process }
     end
@@ -134,6 +135,8 @@ describe Chef::Knife::ClcServerCreate do
 
       it { is_expected.to output(/launch request has been sent/i).to_stdout_from_any_process }
       it { is_expected.to output(/ip request has been sent/i).to_stdout_from_any_process }
+      it { is_expected.to output(/knife clc operation show #{server_creation_link['id']}/).to_stdout_from_any_process }
+      it { is_expected.to output(/knife clc operation show #{ip_assignment_link['id']}/).to_stdout_from_any_process }
       it { is_expected.to output(/knife clc server show #{server_link['id']} --uuid/).to_stdout_from_any_process }
       it { is_expected.to_not output(/#{server['id']}/).to_stdout_from_any_process }
     end

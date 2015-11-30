@@ -24,12 +24,12 @@ class Chef
         links = connection.delete_server(name_args[0])
 
         if config[:clc_wait]
-          connection.wait_for(links['operation']) { putc '.' }
+          connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
           ui.info 'Server has been deleted'
         else
           ui.info 'Deletion request has been sent'
-          ui.info "You can check server status later with 'knife clc server show #{name_args[0]}'"
+          ui.info "You can check deletion operation status with 'knife clc operation show #{links['operation']['id']}'"
         end
       end
     end
