@@ -131,6 +131,10 @@ module Clc
       connection.get("v2/operations/#{account}/status/#{id}").body.fetch('status')
     end
 
+    def show_operation(id)
+      connection.get("v2/operations/#{account}/status/#{id}").body
+    end
+
     def show_group(id)
       connection.get("v2/groups/#{account}/#{id}").body
     end
@@ -147,10 +151,10 @@ module Clc
       connection.get(link['href']).body
     end
 
-    def wait_for(operation_link, timeout = 360)
+    def wait_for(operation_id, timeout = 360)
       expire_at = Time.now + timeout
       loop do
-        operation = follow(operation_link)
+        operation = show_operation(operation_id)
         status = operation['status']
         yield status if block_given?
 

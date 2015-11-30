@@ -42,7 +42,7 @@ describe Chef::Knife::ClcServerDelete do
       end
 
       it { is_expected.to output(/deletion request has been sent/i).to_stdout_from_any_process }
-      it { is_expected.to output(/knife clc server show #{server_id}/).to_stdout_from_any_process }
+      it { is_expected.to output(/knife clc operation show #{server_deletion_link['id']}/).to_stdout_from_any_process }
     end
 
     context 'with waiting' do

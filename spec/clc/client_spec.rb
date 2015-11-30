@@ -158,4 +158,85 @@ describe Clc::Client do
       end
     end
   end
+
+  describe '#show_operation' do
+    context 'with cloud success', with_vcr('client/show_operation/success') do
+      subject(:operation_response) { client.show_operation(operation_id) }
+
+      let(:operation_id) { 'ca1-41998' }
+
+      it { is_expected.to be_a(Hash) }
+      it { is_expected.to include('status') }
+
+      it 'gets specified operation by its resource link' do
+        operation_response
+
+        operation_url = %r{/v2/operations/#{client.account}/status/#{operation_id}}
+
+        expect(WebMock).to have_requested(:get, operation_url)
+      end
+    end
+  end
+
+  describe '#wait_for' do
+    subject(:operation_result) { client.wait_for(operation_id) }
+
+    let(:operation_id) { 'ca1-41998' }
+
+    context 'with completed operation', with_vcr('client/wait_for/completed') do
+      context 'considering overall execution' do
+        it 'does not fail' do
+          expect { operation_result }.to_not raise_error
+        end
+
+        it { is_expected.to be true }
+      end
+
+      context 'considering passed block' do
+        subject(:wait_for) { ->(block) { client.wait_for(operation_id, &block) } }
+
+        it { is_expected.to yield_control.once }
+      end
+    end
+
+    context 'with pending operation', with_vcr('client/wait_for/pending') do
+      before(:each) { allow(client).to receive(:sleep) }
+
+      context 'considering overall execution' do
+        it 'does not fail' do
+          expect { operation_result }.to_not raise_error
+        end
+
+        it { is_expected.to be true }
+      end
+
+      context 'considering passed block' do
+        subject(:wait_for) { ->(block) { client.wait_for(operation_id, &block) } }
+
+        it 'yields until operation is complete' do
+          expect(wait_for).to yield_control.twice
+        end
+      end
+
+      context 'considering timeouts' do
+        subject(:wait_for) { -> { client.wait_for(operation_id, max_seconds) } }
+
+        let(:max_seconds) { 0 }
+
+        it { is_expected.to raise_error(/takes too much time to complete/) }
+      end
+    end
+
+    context 'with failed operation', with_vcr('client/wait_for/failed') do
+      subject(:wait_for) { -> { client.wait_for(operation_id) } }
+
+      it { is_expected.to raise_error(/operation failed/i) }
+    end
+
+    context 'with unrecognized operation status', with_vcr('client/wait_for/unrecognized') do
+      subject(:wait_for) { -> { client.wait_for(operation_id) } }
+
+      it { is_expected.to raise_error(/operation status unknown/i) }
+    end
+  end
 end

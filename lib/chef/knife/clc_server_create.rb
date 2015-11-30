@@ -234,12 +234,13 @@ class Chef
         links = connection.create_server(prepare_launch_params)
 
         if config[:clc_wait]
-          connection.wait_for(links['operation']) { putc '.' }
+          connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
           ui.info "Server has been launched"
           self.data = connection.follow(links['resource'])
         else
           ui.info 'Launch request has been sent'
+          ui.info "You can check launch operation status with 'knife clc operation show #{links['operation']['id']}'"
         end
 
         if config[:clc_allowed_protocols]
@@ -247,12 +248,13 @@ class Chef
           self.data ||= connection.follow(links['resource'])
           ip_links = connection.add_public_ip(data['id'], config[:clc_allowed_protocols])
           if config[:clc_wait]
-            connection.wait_for(ip_links['operation']) { putc '.' }
+            connection.wait_for(ip_links['operation']['id']) { putc '.' }
             ui.info "\n"
             ui.info "Public IP has been assigned"
             self.data = connection.follow(links['resource'])
           else
             ui.info 'Public IP request has been sent'
+            ui.info "You can check assignment operation status with 'knife clc operation show #{ip_links['operation']['id']}'"
           end
         end
 
