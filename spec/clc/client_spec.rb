@@ -65,6 +65,70 @@ describe Clc::Client do
     end
   end
 
+  describe '#reset_server' do
+    context 'with valid params', with_vcr('client/reset_server/valid') do
+      subject(:reset_response) { client.reset_server(id) }
+
+      let(:id) { 'ca1altdtest47' }
+
+      it_behaves_like 'async operation'
+
+      it 'resets the server' do
+        reset_response
+        expect(WebMock).to have_requested(:post, %r{/v2/operations/#{client.account}/servers/reset})
+          .with(:body => [id].to_json)
+      end
+    end
+  end
+
+  describe '#reboot_server' do
+    context 'with valid params', with_vcr('client/reboot_server/valid') do
+      subject(:reboot_response) { client.reboot_server(id) }
+
+      let(:id) { 'ca1altdtest47' }
+
+      it_behaves_like 'async operation'
+
+      it 'reboots the server' do
+        reboot_response
+        expect(WebMock).to have_requested(:post, %r{/v2/operations/#{client.account}/servers/reboot})
+          .with(:body => [id].to_json)
+      end
+    end
+  end
+
+  describe '#power_off_server' do
+    context 'with valid params', with_vcr('client/power_off_server/valid') do
+      subject(:power_on_response) { client.power_off_server(id) }
+
+      let(:id) { 'ca1altdtest47' }
+
+      it_behaves_like 'async operation'
+
+      it 'turns server power off' do
+        power_on_response
+        expect(WebMock).to have_requested(:post, %r{/v2/operations/#{client.account}/servers/powerOff})
+          .with(:body => [id].to_json)
+      end
+    end
+  end
+
+  describe '#power_on_server' do
+    context 'with valid params', with_vcr('client/power_on_server/valid') do
+      subject(:power_on_response) { client.power_on_server(id) }
+
+      let(:id) { 'ca1altdtest47' }
+
+      it_behaves_like 'async operation'
+
+      it 'turns server power on' do
+        power_on_response
+        expect(WebMock).to have_requested(:post, %r{/v2/operations/#{client.account}/servers/powerOn})
+          .with(:body => [id].to_json)
+      end
+    end
+  end
+
   describe '#add_public_ip' do
     context 'with valid params', with_vcr('client/add_public_ip/valid') do
       subject(:ip_assignment_response) { client.add_public_ip(server_id, ports) }
