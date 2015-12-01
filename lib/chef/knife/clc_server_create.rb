@@ -85,16 +85,16 @@ class Chef
         :long => '--custom-field KEY=VALUE',
         :description => 'Custom field key-value pair',
         :proc => ->(param) do
-          @custom_fields ||= []
-          @custom_fields << param
+          Chef::Config[:knife][:clc_custom_fields] ||= []
+          Chef::Config[:knife][:clc_custom_fields] << param
         end
 
       option :clc_disks,
         :long => '--disk PATH,SIZE,TYPE',
         :description => 'Configuration for an additional server disk',
         :proc => ->(param) do
-          @disks ||= []
-          @disks << param
+          Chef::Config[:knife][:clc_disks] ||= []
+          Chef::Config[:knife][:clc_disks] << param
         end
 
       option :clc_ttl,
@@ -105,8 +105,8 @@ class Chef
         :long => '--package ID,KEY_1=VALUE,KEY_2=VALUE',
         :description => 'Package to run on the server after it has been built',
         :proc => ->(param) do
-          @packages ||= []
-          @packages << param
+          Chef::Config[:knife][:clc_packages] ||= []
+          Chef::Config[:knife][:clc_packages] << param
         end
 
       option :clc_configuration,
@@ -121,8 +121,8 @@ class Chef
         :long => '--allow PROTOCOL:FROM-TO',
         :description => 'Assigns public IP with permissions for specified protocol',
         :proc => ->(param) do
-          @allowed_protocols ||= []
-          @allowed_protocols << param
+          Chef::Config[:knife][:clc_allowed_protocols] ||= []
+          Chef::Config[:knife][:clc_allowed_protocols] << param
         end
 
       option :clc_wait,
@@ -160,18 +160,33 @@ class Chef
 
         config[:clc_custom_fields] && config[:clc_custom_fields].map! do |param|
           key, value = param.split('=', 2)
+
+          unless key && value
+            errors << "Custom field definition #{param} is malformed"
+            next
+          end
+
           { 'id' => key, 'value' => value }
         end
 
         config[:clc_disks] && config[:clc_disks].map! do |param|
           path, size, type = param.split(',', 3)
+
+          unless path && size && type
+            errors << "Disk definition #{param} is malformed"
+          end
+
           { 'path' => path, 'sizeGB' => size, 'type' => type }
         end
 
         config[:clc_packages] && config[:clc_packages].map! do |param|
-          id, package_params = param.split(',', 2)
-          package_params = package_params.split(',').map { |pair| Hash[*pair.split('=', 2)] }
-          { 'packageId' => id, 'parameters' => package_params }
+          begin
+            id, package_params = param.split(',', 2)
+            package_params = package_params.split(',').map { |pair| Hash[*pair.split('=', 2)] }
+            { 'packageId' => id, 'parameters' => package_params }
+          rescue Exception => e
+            errors << "Package definition #{param} is malformed"
+          end
         end
 
         config[:clc_allowed_protocols] && config[:clc_allowed_protocols].map! do |param|
@@ -187,17 +202,24 @@ class Chef
           when 'ftps' then { 'protocol' => 'tcp', 'port' => 990 }
           when 'udp', 'tcp'
             unless port_range
-              errors << 'No ports specified'
+              errors << "No ports specified for #{param}"
             else
-              start_port, end_port = port_range.split('-')
+              ports = port_range.split('-').map do |port_string|
+                Integer(port_string) rescue nil
+              end
+
+              if ports.any?(&:nil?) || ports.size > 2 || ports.size < 1
+                errors << "Malformed port range for #{param}"
+              end
+
               {
                 'protocol' => protocol.downcase,
-                'port' => start_port,
-                'portTo' => end_port
+                'port' => ports[0],
+                'portTo' => ports[1]
               }.keep_if { |_, value| value }
             end
           else
-            errors << 'Invalid protocol'
+            errors << "Unsupported protocol for #{param}"
           end
         end && config[:clc_allowed_protocols].flatten!
       end

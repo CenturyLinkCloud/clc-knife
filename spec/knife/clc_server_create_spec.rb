@@ -1,8 +1,18 @@
+require 'chef'
 require 'chef/knife'
 require 'chef/knife/clc_server_create'
 
 describe Chef::Knife::ClcServerCreate do
   subject(:command) { Chef::Knife::ClcServerCreate.new }
+
+  before(:each) do
+    Chef.reset!
+    Chef::Config.reset
+
+    allow(command).to receive(:exit) do |code|
+      raise 'SystemExit' unless exit.zero?
+    end
+  end
 
   describe '#execute' do
     subject(:execute) { -> { command.execute } }
@@ -166,9 +176,12 @@ describe Chef::Knife::ClcServerCreate do
   describe '#parse_and_validate_parameters' do
     context 'considering required parameters' do
       subject(:errors) do
+        command.parse_options(argv)
         command.parse_and_validate_parameters
         command.errors
       end
+
+      let(:argv) { [] }
 
       it { is_expected.to include(match(/name is required/i)) }
       it { is_expected.to include(match(/source id is required/i)) }
@@ -180,26 +193,81 @@ describe Chef::Knife::ClcServerCreate do
 
     context 'considering complex parameters' do
       subject(:config) do
+        command.parse_options(argv)
         command.parse_and_validate_parameters
         command.config
       end
 
-      before(:each) do
-        command.config[:clc_custom_fields] = ['FIELD=VALUE']
-        command.config[:clc_disks] = ['/dev/sda,10,raw']
-        command.config[:clc_packages] = ['editor,LICENSE=FREE']
-        command.config[:clc_allowed_protocols] = ['tcp:23-24']
+      context 'when they are valid' do
+        let(:argv) do
+          %w(
+            --custom-field FIELD=VALUE
+            --disk /dev/sda,10,raw
+            --package editor,LICENSE=FREE
+            --allow ssh
+            --allow http
+            --allow rdp
+            --allow icmp
+            --allow http
+            --allow https
+            --allow ftp
+            --allow ftps
+            --allow udp:20-21
+            --allow tcp:91
+          )
+        end
+
+        let(:expected_fields) { [{ 'id' => 'FIELD', 'value' => 'VALUE' }] }
+        let(:expected_packages) { [{ 'packageId' => 'editor', 'parameters' => [{ 'LICENSE' => 'FREE' }] }] }
+        let(:expected_disks) { [{ 'path' => '/dev/sda', 'sizeGB' => '10', 'type' => 'raw' }] }
+        let(:expected_protocols) do
+          [
+            { 'protocol' => 'tcp', 'port' => 22 },
+            { 'protocol' => 'tcp', 'port' => 80 },
+            { 'protocol' => 'tcp', 'port' => 8080 },
+            { 'protocol' => 'tcp', 'port' => 3389 },
+            { 'protocol' => 'icmp' },
+            { 'protocol' => 'tcp', 'port' => 80 },
+            { 'protocol' => 'tcp', 'port' => 8080 },
+            { 'protocol' => 'tcp', 'port' => 443 },
+            { 'protocol' => 'tcp', 'port' => 21 },
+            { 'protocol' => 'tcp', 'port' => 990 },
+            { 'protocol' => 'udp', 'port' => 20, 'portTo' => 21 },
+            { 'protocol' => 'tcp', 'port' => 91 }
+          ]
+        end
+
+        it { is_expected.to include(:clc_custom_fields => expected_fields) }
+        it { is_expected.to include(:clc_packages => expected_packages) }
+        it { is_expected.to include(:clc_disks => expected_disks) }
+        it { is_expected.to include(:clc_allowed_protocols => expected_protocols) }
+      end
+    end
+
+    describe 'when they are malformed' do
+      subject(:errors) do
+        command.parse_options(argv)
+        command.parse_and_validate_parameters
+        command.errors
       end
 
-      let(:expected_fields) { [{ 'id' => 'FIELD', 'value' => 'VALUE' }] }
-      let(:expected_packages) { [{ 'packageId' => 'editor', 'parameters' => [{ 'LICENSE' => 'FREE' }] }] }
-      let(:expected_disks) { [{ 'path' => '/dev/sda', 'sizeGB' => '10', 'type' => 'raw' }] }
-      let(:expected_protocols) { [{'protocol' => 'tcp', 'port' => '23', 'portTo' => '24' }] }
+      let(:argv) do
+        %w(
+          --custom-field FIELDVALUE
+          --disk /dev/sda10,raw
+          --package editorLICENSEFREE
+          --allow unknownProtocol
+          --allow udp:20-21-24
+          --allow tcp
+        )
+      end
 
-      it { is_expected.to include(:clc_custom_fields => expected_fields) }
-      it { is_expected.to include(:clc_packages => expected_packages) }
-      it { is_expected.to include(:clc_disks => expected_disks) }
-      it { is_expected.to include(:clc_allowed_protocols => expected_protocols) }
+      it { is_expected.to include(/FIELDVALUE/) }
+      it { is_expected.to include(%r{/dev/sda10,raw}) }
+      it { is_expected.to include(/editorLICENSEFREE/) }
+      it { is_expected.to include(/unknownProtocol/) }
+      it { is_expected.to include(/udp:20-21-24/) }
+      it { is_expected.to include(/tcp/) }
     end
   end
 end
