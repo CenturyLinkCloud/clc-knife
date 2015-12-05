@@ -107,24 +107,20 @@ module Clc
       connection.get(url).body.fetch('templates')
     end
 
-    def add_public_ip(server_id, ports)
+    def add_public_ip(server_id, params)
       body = connection.post(
         "/v2/servers/#{account}/#{server_id}/publicIPAddresses",
-        'ports' => ports
+        params
       ).body
 
       async_response('links' => [body])
     end
 
-    # TODO: Takes quite a lot of time...
     def remove_public_ip(server_id, ip_string)
       url = "/v2/servers/#{account}/#{server_id}/publicIPAddresses/#{ip_string}"
-      operation = connection.delete(url).body
-      wait_for_operation(operation['id'])
-    end
+      body = connection.delete(url).body
 
-    def get_operation_status(id)
-      connection.get("v2/operations/#{account}/status/#{id}").body.fetch('status')
+      async_response('links' => [body])
     end
 
     def show_operation(id)
@@ -155,21 +151,6 @@ module Clc
         yield status if block_given?
 
         case status
-        when 'succeeded' then return true
-        when 'failed', 'unknown' then raise 'Operation Failed' # reason?
-        when 'executing', 'resumed', 'notStarted'
-          raise 'Operation takes too much time to complete' if Time.now > expire_at
-          next sleep(2)
-        else
-          raise "Operation status unknown: #{status}"
-        end
-      end
-    end
-
-    def wait_for_operation(id, timeout = 60)
-      expire_at = Time.now + timeout
-      loop do
-        case status = get_operation_status(id)
         when 'succeeded' then return true
         when 'failed', 'unknown' then raise 'Operation Failed' # reason?
         when 'executing', 'resumed', 'notStarted'

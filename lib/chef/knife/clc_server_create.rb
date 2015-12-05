@@ -268,7 +268,7 @@ class Chef
         if config[:clc_allowed_protocols]
           ui.info 'Requesting public IP...'
           self.data ||= connection.follow(links['resource'])
-          ip_links = connection.add_public_ip(data['id'], config[:clc_allowed_protocols])
+          ip_links = connection.add_public_ip(data['id'], 'ports' => config[:clc_allowed_protocols])
           if config[:clc_wait]
             connection.wait_for(ip_links['operation']['id']) { putc '.' }
             ui.info "\n"
