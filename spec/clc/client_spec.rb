@@ -131,7 +131,7 @@ describe Clc::Client do
 
   describe '#add_public_ip' do
     context 'with valid params', with_vcr('client/add_public_ip/valid') do
-      subject(:ip_assignment_response) { client.add_public_ip(server_id, ports) }
+      subject(:ip_assignment_response) { client.add_public_ip(server_id, 'ports' => ports) }
 
       let(:server_id) { 'ca1altdtest34' }
 
@@ -148,6 +148,25 @@ describe Clc::Client do
 
         expect(WebMock).to have_requested(:post, creation_url)
           .with(:body => { 'ports' => ports })
+      end
+    end
+  end
+
+  describe '#remove_public_ip' do
+    context 'with valid params', with_vcr('client/remove_public_ip/valid') do
+      subject(:ip_removal_response) { client.remove_public_ip(server_id, ip_string) }
+
+      let(:server_id) { 'ca1altdtest50' }
+      let(:ip_string) { '65.39.180.226' }
+
+      it_behaves_like 'async operation'
+
+      it 'deletes specified IP record' do
+        ip_removal_response
+
+        url = %r{/v2/servers/#{client.account}/#{server_id}/publicIPAddresses/#{Regexp.quote(ip_string)}}
+
+        expect(WebMock).to have_requested(:delete, url)
       end
     end
   end
