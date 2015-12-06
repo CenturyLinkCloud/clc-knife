@@ -34,7 +34,7 @@ class Chef
         if config[:clc_wait]
           connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
-          ui.info 'IP has been deleted'
+          ui.info 'IP address has been deleted'
         else
           ui.info 'Deletion request has been sent'
           ui.info "You can check deletion operation status with 'knife clc operation show #{links['operation']['id']}'"
