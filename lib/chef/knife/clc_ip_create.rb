@@ -103,57 +103,12 @@ class Chef
         if config[:clc_wait]
           connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
-          ui.info "Public IP has been assigned"
-          ui.info "Loading current IP address configuration..."
-          self.data = connection.list_ip_addresses(config[:clc_server])
-
-          render_addresses
+          ui.info 'Public IP has been assigned'
+          ui.info "You can look at new network configuration with `knife clc server show #{config[:clc_server]} --ip-details"
         else
           ui.info 'IP assignment request has been sent'
           ui.info "You can check assignment operation status with 'knife clc operation show #{links['operation']['id']}'"
         end
-      end
-
-      def fields
-        %w(id internalIPAddress ports sourceRestrictions)
-      end
-
-      def headers
-        {
-          'id' => 'Public IP',
-          'internalIPAddress' => 'Internal IP',
-          'ports' => 'Ports',
-          'sourceRestrictions' => 'Sources'
-        }
-      end
-
-      def filters
-        {
-          'sourceRestrictions' => ->(sources) { sources.empty? ? '-' : sources.join(', ') },
-          'ports' => ->(ports) { ports.map { |port_definition| format_port_definition(port_definition) }.join(', ') }
-        }
-      end
-
-      def format_port_definition(definition)
-        protocol = definition['protocol']
-
-        if %w(tcp udp).include? protocol.downcase
-          ports = definition.values_at('port', 'portTo').compact
-          [protocol, ports.join('-')].join(':')
-        else
-          protocol
-        end
-      end
-
-      def render_addresses
-        output = Hirb::Helpers::AutoTable.render(data,
-          :headers => headers,
-          :fields => fields,
-          :filters => filters,
-          :resize => false,
-          :description => false)
-
-        puts output
       end
     end
   end
