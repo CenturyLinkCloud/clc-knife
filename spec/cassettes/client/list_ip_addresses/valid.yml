@@ -1,0 +1,117 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/authentication/login
+    body:
+      encoding: UTF-8
+      string: "{\"username\":\"<CLC_USERNAME>\",\"password\":\"<CLC_PASSWORD>\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Sun, 06 Dec 2015 17:38:09 GMT
+      Content-Length:
+      - '736'
+    body:
+      encoding: UTF-8
+      string: "{\"userName\":\"<CLC_USERNAME>\",\"accountAlias\":\"ALTD\",\"locationAlias\":\"VA1\",\"roles\":[\"AccountAdmin\",\"AccountViewer\",\"BillingAdmin\",\"DNSManager\",\"NetworkAdmin\",\"SecurityAdmin\",\"ServerAdmin\",\"ServerOperator\",\"ServerScheduler\"],\"bearerToken\":\"<CLC_BEARER_TOKEN>\"}"
+    http_version: 
+  recorded_at: Sun, 06 Dec 2015 17:44:55 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/servers/ALTD/ca1altdtest51?uuid=false
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Sun, 06 Dec 2015 17:38:10 GMT
+      Content-Length:
+      - '1052'
+    body:
+      encoding: UTF-8
+      string: "{\"id\":\"ca1altdtest51\",\"name\":\"CA1ALTDTEST51\",\"description\":\"\",\"groupId\":\"975a79f94b84452ea1c920325967a33c\",\"isTemplate\":false,\"locationId\":\"CA1\",\"osType\":\"Debian
+        7 64-bit\",\"os\":\"debian7_64Bit\",\"status\":\"active\",\"details\":{\"ipAddresses\":[{\"internal\":\"10.50.48.12\"},{\"internal\":\"10.50.48.13\"},{\"public\":\"65.39.180.226\",\"internal\":\"10.50.48.14\"}],\"secondaryIPAddresses\":[],\"alertPolicies\":[],\"cpu\":1,\"diskCount\":3,\"hostName\":\"ca1altdtest51\",\"inMaintenanceMode\":false,\"memoryMB\":1024,\"powerState\":\"started\",\"storageGB\":19,\"disks\":[{\"id\":\"0:0\",\"sizeGB\":1,\"partitionPaths\":[]},{\"id\":\"0:1\",\"sizeGB\":2,\"partitionPaths\":[]},{\"id\":\"0:2\",\"sizeGB\":16,\"partitionPaths\":[]}],\"partitions\":[{\"sizeGB\":0.0,\"path\":\"(swap)\"},{\"sizeGB\":15.748,\"path\":\"/\"},{\"sizeGB\":0.482,\"path\":\"/boot\"}],\"snapshots\":[],\"customFields\":[]},\"type\":\"standard\",\"storageType\":\"premium\",\"changeInfo\":{\"createdBy\":\"<CLC_USERNAME>\",\"createdDate\":\"2015-12-06T13:58:32Z\",\"modifiedBy\":\"<CLC_USERNAME>\",\"modifiedDate\":\"2015-12-06T15:44:12Z\"},\"links\":[{\"rel\":\"self\",\"href\":\"/v2/servers/altd/ca1altdtest51\",\"id\":\"ca1altdtest51\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"group\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c\",\"id\":\"975a79f94b84452ea1c920325967a33c\"},{\"rel\":\"account\",\"href\":\"/v2/accounts/altd\",\"id\":\"altd\"},{\"rel\":\"billing\",\"href\":\"/v2/billing/altd/serverPricing/ca1altdtest51\"},{\"rel\":\"publicIPAddresses\",\"href\":\"/v2/servers/altd/ca1altdtest51/publicIPAddresses\",\"verbs\":[\"POST\"]},{\"rel\":\"credentials\",\"href\":\"/v2/servers/altd/ca1altdtest51/credentials\"},{\"rel\":\"statistics\",\"href\":\"/v2/servers/altd/ca1altdtest51/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/servers/altd/fbff7c50f4794671b5e236353b75a781/upcomingScheduledActivities\"},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/servers/altd/fbff7c50f4794671b5e236353b75a781/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"capabilities\",\"href\":\"/v2/servers/altd/ca1altdtest51/capabilities\"},{\"rel\":\"alertPolicyMappings\",\"href\":\"/v2/servers/altd/ca1altdtest51/alertPolicies\",\"verbs\":[\"POST\"]},{\"rel\":\"antiAffinityPolicyMapping\",\"href\":\"/v2/servers/altd/ca1altdtest51/antiAffinityPolicy\",\"verbs\":[\"PUT\",\"DELETE\"]},{\"rel\":\"cpuAutoscalePolicyMapping\",\"href\":\"/v2/servers/altd/ca1altdtest51/cpuAutoscalePolicy\",\"verbs\":[\"PUT\",\"DELETE\"]},{\"rel\":\"publicIPAddress\",\"href\":\"/v2/servers/altd/ca1altdtest51/publicIPAddresses/65.39.180.226\",\"id\":\"65.39.180.226\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]}]}"
+    http_version: 
+  recorded_at: Sun, 06 Dec 2015 17:44:56 GMT
+- request:
+    method: get
+    uri: https://api.ctl.io/v2/servers/altd/ca1altdtest51/publicIPAddresses/65.39.180.226
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Sun, 06 Dec 2015 17:38:37 GMT
+      Content-Length:
+      - '210'
+    body:
+      encoding: UTF-8
+      string: "{\"internalIPAddress\":\"10.50.48.14\",\"ports\":[{\"protocol\":\"TCP\",\"port\":23,\"portTo\":24}],\"sourceRestrictions\":[]}"
+    http_version: 
+  recorded_at: Sun, 06 Dec 2015 17:45:24 GMT
+recorded_with: VCR 3.0.0
