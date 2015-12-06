@@ -5,6 +5,8 @@ class Chef
     class ClcIpDelete < Knife
       include Knife::ClcBase
 
+      banner 'knife clc ip delete IP (options)'
+
       option :clc_server,
         :long => '--server ID',
         :description => 'ID of the server to assign IP to'
@@ -14,8 +16,6 @@ class Chef
         :description => 'Wait for operation completion',
         :boolean => true,
         :default => false
-
-      banner 'knife clc ip delete IP (options)'
 
       def parse_and_validate_parameters
         unless name_args[0]

@@ -5,13 +5,13 @@ class Chef
     class ClcOperationShow < Knife
       include Knife::ClcBase
 
+      banner 'knife clc operation show ID (options)'
+
       option :clc_wait,
         :long => '--wait',
         :description => 'Wait for operation completion',
         :boolean => true,
         :default => false
-
-      banner 'knife clc operation show ID (options)'
 
       def parse_and_validate_parameters
         unless name_args[0]

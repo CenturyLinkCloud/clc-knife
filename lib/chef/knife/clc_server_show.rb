@@ -5,7 +5,7 @@ class Chef
     class ClcServerShow < Knife
       include Knife::ClcBase
 
-      banner 'knife clc server show (options)'
+      banner 'knife clc server show ID (options)'
 
       option :clc_uuid,
         :long => '--uuid',
