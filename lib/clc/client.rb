@@ -107,7 +107,7 @@ module Clc
       connection.get(url).body.fetch('templates')
     end
 
-    def add_public_ip(server_id, params)
+    def create_ip_address(server_id, params)
       body = connection.post(
         "/v2/servers/#{account}/#{server_id}/publicIPAddresses",
         params
@@ -116,11 +116,21 @@ module Clc
       async_response('links' => [body])
     end
 
-    def remove_public_ip(server_id, ip_string)
+    def delete_ip_address(server_id, ip_string)
       url = "/v2/servers/#{account}/#{server_id}/publicIPAddresses/#{ip_string}"
       body = connection.delete(url).body
 
       async_response('links' => [body])
+    end
+
+    def list_ip_addresses(server_id)
+      server = show_server(server_id)
+
+      ip_links = server['links'].select do |link|
+        link['rel'] == 'publicIPAddress'
+      end
+
+      ip_links.map { |link| follow(link).merge('id' => link['id']) }
     end
 
     def show_operation(id)

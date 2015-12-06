@@ -29,7 +29,7 @@ class Chef
 
       def execute
         ui.info 'Requesting IP deletion...'
-        links = connection.remove_public_ip(config[:clc_server], name_args[0])
+        links = connection.delete_ip_address(config[:clc_server], name_args[0])
 
         if config[:clc_wait]
           connection.wait_for(links['operation']['id']) { putc '.' }

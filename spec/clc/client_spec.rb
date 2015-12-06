@@ -129,9 +129,9 @@ describe Clc::Client do
     end
   end
 
-  describe '#add_public_ip' do
-    context 'with valid params', with_vcr('client/add_public_ip/valid') do
-      subject(:ip_assignment_response) { client.add_public_ip(server_id, 'ports' => ports) }
+  describe '#create_ip_address' do
+    context 'with valid params', with_vcr('client/create_ip_address/valid') do
+      subject(:ip_assignment_response) { client.create_ip_address(server_id, 'ports' => ports) }
 
       let(:server_id) { 'ca1altdtest34' }
 
@@ -152,9 +152,9 @@ describe Clc::Client do
     end
   end
 
-  describe '#remove_public_ip' do
-    context 'with valid params', with_vcr('client/remove_public_ip/valid') do
-      subject(:ip_removal_response) { client.remove_public_ip(server_id, ip_string) }
+  describe '#delete_ip_address' do
+    context 'with valid params', with_vcr('client/delete_ip_address/valid') do
+      subject(:ip_removal_response) { client.delete_ip_address(server_id, ip_string) }
 
       let(:server_id) { 'ca1altdtest50' }
       let(:ip_string) { '65.39.180.226' }
@@ -167,6 +167,42 @@ describe Clc::Client do
         url = %r{/v2/servers/#{client.account}/#{server_id}/publicIPAddresses/#{Regexp.quote(ip_string)}}
 
         expect(WebMock).to have_requested(:delete, url)
+      end
+    end
+  end
+
+  describe '#list_ip_addresses' do
+    context 'when server is specified', with_vcr('client/list_ip_addresses/valid') do
+      let(:server_id) { 'ca1altdtest51' }
+
+      it 'returns an Array' do
+        expect(client.list_ip_addresses('ca1altdtest51')).to be_an(Array)
+      end
+
+      it 'queries server for IP address details' do
+        url = %r{/v2/servers/#{client.account}/#{server_id}\?}i
+
+        client.list_ip_addresses(server_id)
+
+        expect(WebMock).to have_requested(:get, url)
+      end
+
+      it 'makes a separate call to get complete IP address data' do
+        url = %r{/v2/servers/#{client.account}/#{server_id}/publicIPAddresses/.+}i
+
+        client.list_ip_addresses(server_id)
+
+        expect(WebMock).to have_requested(:get, url)
+      end
+
+      it 'sets an ID property on returned records' do
+        expect(client.list_ip_addresses(server_id)).to all(include('id'))
+      end
+    end
+
+    context 'when server is not specified', with_vcr('client/list_ip_addresses/without_server') do
+      it 'fails' do
+        expect { client.list_templates }.to raise_error(ArgumentError)
       end
     end
   end

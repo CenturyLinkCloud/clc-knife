@@ -33,7 +33,7 @@ describe Chef::Knife::ClcServerCreate do
         { 'operation' => server_creation_link, 'resource' => server_link }
       end
 
-      allow(connection).to receive(:add_public_ip) do
+      allow(connection).to receive(:create_ip_address) do
         { 'operation' => ip_assignment_link }
       end
 

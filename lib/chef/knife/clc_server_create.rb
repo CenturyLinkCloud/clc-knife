@@ -248,7 +248,7 @@ class Chef
           'additionalDisks' => config[:clc_disks],
           'ttl' => config[:clc_ttl],
           'packages' => config[:clc_packages],
-        }.delete_if { |_, value| [nil, [], '', {}].include?(value) }
+        }.delete_if { |_, value| value.nil? || value.empty? }
       end
 
       def execute
@@ -268,7 +268,7 @@ class Chef
         if config[:clc_allowed_protocols]
           ui.info 'Requesting public IP...'
           self.data ||= connection.follow(links['resource'])
-          ip_links = connection.add_public_ip(data['id'], 'ports' => config[:clc_allowed_protocols])
+          ip_links = connection.create_ip_address(data['id'], 'ports' => config[:clc_allowed_protocols])
           if config[:clc_wait]
             connection.wait_for(ip_links['operation']['id']) { putc '.' }
             ui.info "\n"

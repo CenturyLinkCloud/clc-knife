@@ -93,26 +93,21 @@ class Chef
           'ports' => config[:clc_allowed_protocols],
           'sourceRestrictions' => config[:clc_sources],
           'internalIPAddress' => config[:clc_internal_ip]
-        }.delete_if { |_, value| [nil, [], '', {}].include?(value) }
+        }.delete_if { |_, value| value.nil? || value.empty? }
       end
 
       def execute
         ui.info 'Requesting public IP...'
-        links = connection.add_public_ip(config[:clc_server], prepare_ip_params)
+        links = connection.create_ip_address(config[:clc_server], prepare_ip_params)
 
         if config[:clc_wait]
           connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
           ui.info "Public IP has been assigned"
-          self.data = connection.show_server(config[:clc_server])
+          ui.info "Loading current IP address configuration..."
+          self.data = connection.list_ip_addresses(config[:clc_server])
 
-          credentials = connection.follow(data['links'].find { |link| link['rel'] == 'credentials' })
-          ip_address_info = data['details']['ipAddresses'].find { |address| address['public'] }
-
-          self.data['publicIp'] = ip_address_info && ip_address_info['public']
-          self.data.merge!(credentials)
-
-          render_server
+          render_addresses
         else
           ui.info 'IP assignment request has been sent'
           ui.info "You can check assignment operation status with 'knife clc operation show #{links['operation']['id']}'"
@@ -120,35 +115,45 @@ class Chef
       end
 
       def fields
-        %w(id name description status groupId locationId osType type storageType publicIp userName password)
+        %w(id internalIPAddress ports sourceRestrictions)
       end
 
       def headers
         {
-          'id' => 'ID',
-          'name' => 'Name',
-          'description' => 'Description',
-          'status' => 'Status',
-          'groupId' => 'Group',
-          'locationId' => 'Location',
-          'osType' => 'OS Type',
-          'type' => 'Type',
-          'storageType' => 'Storage Type',
-          'publicIp' => 'Public IP',
-          'userName' => 'Username',
-          'password' => 'Password'
+          'id' => 'Public IP',
+          'internalIPAddress' => 'Internal IP',
+          'ports' => 'Ports',
+          'sourceRestrictions' => 'Sources'
         }
       end
 
-      def render_server
-        fields.each do |field|
-          header = headers.fetch(field, field.capitalize)
-          value = data.fetch(field, '-')
+      def filters
+        {
+          'sourceRestrictions' => ->(sources) { sources.empty? ? '-' : sources.join(', ') },
+          'ports' => ->(ports) { ports.map { |port_definition| format_port_definition(port_definition) }.join(', ') }
+        }
+      end
 
-          if value
-            puts ui.color(header, :bold) + ': ' + value.to_s
-          end
+      def format_port_definition(definition)
+        protocol = definition['protocol']
+
+        if %w(tcp udp).include? protocol.downcase
+          ports = definition.values_at('port', 'portTo').compact
+          [protocol, ports.join('-')].join(':')
+        else
+          protocol
         end
+      end
+
+      def render_addresses
+        output = Hirb::Helpers::AutoTable.render(data,
+          :headers => headers,
+          :fields => fields,
+          :filters => filters,
+          :resize => false,
+          :description => false)
+
+        puts output
       end
     end
   end
