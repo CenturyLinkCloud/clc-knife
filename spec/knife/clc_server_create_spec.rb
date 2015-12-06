@@ -184,7 +184,7 @@ describe Chef::Knife::ClcServerCreate do
       let(:argv) { [] }
 
       it { is_expected.to include(match(/name is required/i)) }
-      it { is_expected.to include(match(/source id is required/i)) }
+      it { is_expected.to include(match(/source server id is required/i)) }
       it { is_expected.to include(match(/group id is required/i)) }
       it { is_expected.to include(match(/number of cpus is required/i)) }
       it { is_expected.to include(match(/number of memory gbs is required/i)) }

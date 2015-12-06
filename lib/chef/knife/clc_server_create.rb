@@ -19,8 +19,8 @@ class Chef
         :long => '--group ID',
         :description => 'ID of the parent group'
 
-      option :clc_source,
-        :long => '--source ID',
+      option :clc_source_server,
+        :long => '--source-server ID',
         :description => 'ID of the server to use a source. May be the ID of a template, or when cloning, an existing server ID'
 
       option :clc_managed,
@@ -53,8 +53,8 @@ class Chef
         :long => '--password PASSWORD',
         :description => 'Password of administrator or root user on server'
 
-      option :clc_source_password,
-        :long => '--source-password PASSWORD',
+      option :clc_source_server_password,
+        :long => '--source-server-password PASSWORD',
         :description => 'Password of the source server, used only when creating a clone from an existing server'
 
       option :clc_cpu,
@@ -125,6 +125,14 @@ class Chef
           Chef::Config[:knife][:clc_allowed_protocols] << param
         end
 
+      option :clc_sources,
+        :long => '--source CIDR',
+        :description => 'The source IP address range allowed to access the new public IP address',
+        :proc => ->(param) do
+          Chef::Config[:knife][:clc_sources] ||= []
+          Chef::Config[:knife][:clc_sources] << param
+        end
+
       option :clc_wait,
         :long => '--wait',
         :description => 'Wait for operation completion',
@@ -142,8 +150,8 @@ class Chef
           errors << 'Group ID is required'
         end
 
-        unless config[:clc_source]
-          errors << 'Source ID is required'
+        unless config[:clc_source_server]
+          errors << 'Source server ID is required'
         end
 
         unless config[:clc_cpu]
@@ -222,6 +230,10 @@ class Chef
             errors << "Unsupported protocol for #{param}"
           end
         end && config[:clc_allowed_protocols].flatten!
+
+        config[:clc_sources] && config[:clc_sources].map! do |cidr|
+          { 'cidr' => cidr }
+        end
       end
 
       def prepare_launch_params
@@ -229,7 +241,7 @@ class Chef
           'name' => config[:clc_name],
           'description' => config[:clc_description],
           'groupId' => config[:clc_group],
-          'sourceServerId' => config[:clc_source],
+          'sourceServerId' => config[:clc_source_server],
           'isManagedOS' => config[:clc_managed],
           'isManagedBackup' => config[:clc_managed_backup],
           'primaryDns' => config[:clc_primary_dns],
@@ -237,7 +249,7 @@ class Chef
           'networkId' => config[:clc_network],
           'ipAddress' => config[:clc_ip],
           'password' => config[:clc_password],
-          'sourceServerPassword' => config[:clc_source_password],
+          'sourceServerPassword' => config[:clc_source_server_password],
           'cpu' => config[:clc_cpu],
           'cpuAutoscalePolicyId' => config[:clc_cpu_autoscale_policy],
           'memoryGB' => config[:clc_memory],
@@ -248,6 +260,13 @@ class Chef
           'additionalDisks' => config[:clc_disks],
           'ttl' => config[:clc_ttl],
           'packages' => config[:clc_packages],
+        }.delete_if { |_, value| !value.kind_of?(Integer) && (value.nil? || value.empty?) }
+      end
+
+      def prepare_ip_params
+        {
+          'ports' => config[:clc_allowed_protocols],
+          'sourceRestrictions' => config[:clc_sources]
         }.delete_if { |_, value| value.nil? || value.empty? }
       end
 
@@ -268,7 +287,7 @@ class Chef
         if config[:clc_allowed_protocols]
           ui.info 'Requesting public IP...'
           self.data ||= connection.follow(links['resource'])
-          ip_links = connection.create_ip_address(data['id'], 'ports' => config[:clc_allowed_protocols])
+          ip_links = connection.create_ip_address(data['id'], prepare_ip_params)
           if config[:clc_wait]
             connection.wait_for(ip_links['operation']['id']) { putc '.' }
             ui.info "\n"
