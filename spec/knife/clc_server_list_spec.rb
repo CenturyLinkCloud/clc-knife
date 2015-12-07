@@ -75,7 +75,11 @@ describe Chef::Knife::ClcServerList do
         before(:each) do
           command.config.delete(:clc_datacenter)
           command.config[:clc_all] = true
+
+          allow(connection).to receive(:list_datacenters) { [datacenter] }
         end
+
+        let(:datacenter) { { 'id' => 'ca1' } }
 
         it { is_expected.not_to raise_error }
       end
