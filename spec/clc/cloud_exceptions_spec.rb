@@ -18,4 +18,28 @@ describe Clc::CloudExceptions::Handler do
       expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::InternalServerError)
     end
   end
+
+  context 'when cloud fails with bad request error', with_vcr('cloud_exceptions/handler/bad_request') do
+    it 'raises BadRequest exception' do
+      expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::BadRequest)
+    end
+  end
+
+  context 'when cloud fails with unauthorized error', with_vcr('cloud_exceptions/handler/unauthorized') do
+    it 'raises Unauthorized exception' do
+      expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::Unauthorized)
+    end
+  end
+
+  context 'when cloud fails with forbidden error', with_vcr('cloud_exceptions/handler/forbidden') do
+    it 'raises Forbidden exception' do
+      expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::Forbidden)
+    end
+  end
+
+  context 'when cloud fails with unknown error', with_vcr('cloud_exceptions/handler/unknown_error') do
+    it 'raises UnknownError exception' do
+      expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::UnknownError)
+    end
+  end
 end
