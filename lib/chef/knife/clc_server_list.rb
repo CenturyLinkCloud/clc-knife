@@ -17,11 +17,41 @@ class Chef
         :default => false,
         :description => 'The attribute to return a list of all servers from all datacenters'
 
+      option :clc_chef_nodes,
+        :long => '--chef-nodes',
+        :boolean => true,
+        :default => false,
+        :description => 'Wherever to include Chef node names in the listing or not'
+
       def execute
         render
       end
 
       def collection
+        servers = cloud_servers
+        merge_public_ips!(servers)
+        merge_chef_nodes!(servers) if config[:clc_chef_nodes]
+        servers
+      end
+
+      def merge_public_ips!(servers)
+        servers.map! do |server|
+          ip_link = server['links'].find { |link| link['rel'] == 'publicIPAddress' }
+          server['publicIP'] = ip_link['id'] if ip_link
+          server
+        end
+      end
+
+      def merge_chef_nodes!(servers)
+        nodes = Chef::Node.list(true).values
+        servers.map! do |server|
+          existing_node = nodes.find { |node| node.machinename == server['name'] }
+          server['chefNode'] = existing_node.name if existing_node
+          server
+        end
+      end
+
+      def cloud_servers
         if config[:clc_datacenter]
           connection.list_servers(config[:clc_datacenter])
         elsif config[:clc_all]
@@ -37,21 +67,24 @@ class Chef
         {
           'id' => 'ID',
           'name' => 'Name',
-          'description' => 'Description',
-          'groupId' => 'Group ID',
+          'publicIP' => 'Public IP',
+          'chefNode' => 'Chef Node',
+          'groupId' => 'Group',
           'osType' => 'OS Type',
           'status' => 'Status',
-          'locationId' => 'Location ID'
+          'locationId' => 'DC'
         }
       end
 
       def fields
-        %w(id name description groupId locationId osType status)
+        default_fields = %w(id name publicIP groupId locationId osType status)
+        config[:clc_chef_nodes] ? default_fields.insert(3, 'chefNode') : default_fields
       end
 
       def filters
         {
-          'description' => proc { |desc| desc.empty? ? '-' : desc }
+          'publicIP' => ->(ip) { ip || '-' },
+          'chefNode' => ->(name) { name || '-' }
         }
       end
 

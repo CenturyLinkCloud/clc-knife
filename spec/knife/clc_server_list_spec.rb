@@ -34,16 +34,47 @@ describe Chef::Knife::ClcServerList do
         end
 
         let(:server) do
-          { 'id' => 'ca1altdtest48L', 'name' => 'CA1ALTDTEST48', 'description' => 'none',
-            'groupId' => '975a79f94b84452ea1c920325967a33c', 'locationId' => 'CA1',
-            'osType' => 'Debian 7 64-bit', 'status' => 'active' }
+          {
+            'id' => 'ca1altdtest55',
+            'name' => 'CA1ALTDTEST55',
+            'description' => 'Some description',
+            'groupId' => '975a79f94b84452ea1c920325967a33c',
+            'isTemplate' => false,
+            'locationId' => 'CA1',
+            'osType' => 'Debian 7 64-bit',
+            'os' => 'debian7_64Bit',
+            'status' => 'active',
+            'details' => {
+              'ipAddresses' => [
+                { 'internal' => '10.50.48.12' },
+                { 'public' => '65.39.180.227', 'internal' => '10.50.48.15' }
+              ],
+              'secondaryIPAddresses' => [],
+              'alertPolicies' => [],
+              'cpu' => 1,
+              'diskCount' => 3,
+              'hostName' => 'ca1altdtest55',
+              'inMaintenanceMode' => false,
+              'memoryMB' => 1024,
+              'powerState' => 'started',
+              'storageGB' => 19,
+              'snapshots' => [],
+              'customFields' => []
+            },
+            'type' => 'standard',
+            'storageType' => 'premium',
+            'links' => [
+              { 'rel' => 'credentials', 'href' => '/v2/servers/altd/ca1altdtest55/credentials' },
+              { 'rel' => 'publicIPAddress', 'href' => '/v2/servers/altd/ca1altdtest55/publicIPAddresses/65.39.180.227', 'id' => '65.39.180.227' }
+            ]
+          }
         end
 
         context 'considering fields that are always shown' do
           it { is_expected.to output(/#{server['id']}/i).to_stdout_from_any_process }
           it { is_expected.to output(/#{server['name']}/i).to_stdout_from_any_process }
-          it { is_expected.to output(/#{server['description']}/i).to_stdout_from_any_process }
           it { is_expected.to output(/#{server['groupId']}/i).to_stdout_from_any_process }
+          it { is_expected.to output(/#{Regexp.quote(server['links'].last['id'])}/).to_stdout_from_any_process }
           it { is_expected.to output(/#{server['locationId']}/i).to_stdout_from_any_process }
           it { is_expected.to output(/#{server['osType']}/i).to_stdout_from_any_process }
           it { is_expected.to output(/#{server['status']}/i).to_stdout_from_any_process }
@@ -52,34 +83,44 @@ describe Chef::Knife::ClcServerList do
         context 'considering headers' do
           it { is_expected.to output(/ID/).to_stdout_from_any_process }
           it { is_expected.to output(/Name/).to_stdout_from_any_process }
-          it { is_expected.to output(/Description/).to_stdout_from_any_process }
-          it { is_expected.to output(/Group ID/).to_stdout_from_any_process }
-          it { is_expected.to output(/Location ID/).to_stdout_from_any_process }
+          it { is_expected.to output(/Group/).to_stdout_from_any_process }
+          it { is_expected.to output(/Public IP/).to_stdout_from_any_process }
+          it { is_expected.to output(/DC/).to_stdout_from_any_process }
           it { is_expected.to output(/OS Type/).to_stdout_from_any_process }
           it { is_expected.to output(/Status/i).to_stdout_from_any_process }
         end
-      end
-    end
 
-    context 'considering datacenter scoping' do
-      context 'when datacenter specified' do
-        before(:each) do
-          command.config[:clc_datacenter] = 'ca1'
+        context 'when datacenter specified' do
+          before(:each) do
+            command.config[:clc_datacenter] = 'ca1'
+          end
+
+          it { is_expected.not_to raise_error }
         end
 
-        it { is_expected.not_to raise_error }
-      end
+        context 'when all opton is specified' do
+          before(:each) do
+            command.config.delete(:clc_datacenter)
+            command.config[:clc_all] = true
+            allow(connection).to receive(:list_datacenters) { [datacenter] }
+          end
 
-      context 'when all opton is specified' do
-        before(:each) do
-          command.config.delete(:clc_datacenter)
-          command.config[:clc_all] = true
-          allow(connection).to receive(:list_datacenters) { [datacenter] }
+          let(:datacenter) { { 'id' => 'ca1' } }
+
+          it { is_expected.not_to raise_error }
         end
 
-        let(:datacenter) { { 'id' => 'ca1' } }
+        context 'considering chef nodes' do
+          before(:each) do
+            command.config[:clc_chef_nodes] = true
+            allow(Chef::Node).to receive(:list) { { node.name => node } }
+          end
 
-        it { is_expected.not_to raise_error }
+          let(:node) { double(:name => server['name'] + '.local', :machinename => server['name']) }
+
+          it { is_expected.to output(/Chef Node/).to_stdout_from_any_process }
+          it { is_expected.to output(/#{node.name}/).to_stdout_from_any_process }
+        end
       end
     end
   end
