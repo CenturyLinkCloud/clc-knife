@@ -204,6 +204,8 @@ describe Chef::Knife::ClcServerCreate do
             --custom-field FIELD=VALUE
             --disk /dev/sda,10,raw
             --package editor,LICENSE=FREE
+            --source 0.0.0.0/0
+            --source 10.0.0.0/0
             --allow ssh
             --allow http
             --allow rdp
@@ -220,6 +222,7 @@ describe Chef::Knife::ClcServerCreate do
         let(:expected_fields) { [{ 'id' => 'FIELD', 'value' => 'VALUE' }] }
         let(:expected_packages) { [{ 'packageId' => 'editor', 'parameters' => [{ 'LICENSE' => 'FREE' }] }] }
         let(:expected_disks) { [{ 'path' => '/dev/sda', 'sizeGB' => '10', 'type' => 'raw' }] }
+        let(:expected_sources) { [{ 'cidr' => '0.0.0.0/0' }, { 'cidr' => '10.0.0.0/0' }] }
         let(:expected_protocols) do
           [
             { 'protocol' => 'tcp', 'port' => 22 },
@@ -240,6 +243,7 @@ describe Chef::Knife::ClcServerCreate do
         it { is_expected.to include(:clc_custom_fields => expected_fields) }
         it { is_expected.to include(:clc_packages => expected_packages) }
         it { is_expected.to include(:clc_disks => expected_disks) }
+        it { is_expected.to include(:clc_sources => expected_sources) }
         it { is_expected.to include(:clc_allowed_protocols => expected_protocols) }
       end
     end
