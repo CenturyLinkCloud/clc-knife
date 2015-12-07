@@ -1,90 +1,110 @@
-require 'chef/knife'
 require 'chef/knife/clc_template_list'
 
 describe Chef::Knife::ClcTemplateList do
-  subject(:command) { Chef::Knife::ClcTemplateList.new }
+  let(:valid_args) { %w(--datacenter ca1) }
 
-  describe '#run' do
-    subject(:run) { -> { command.run } }
+  it_behaves_like 'a Knife CLC command' do
+    let(:argv) { valid_args }
+  end
 
-    let(:connection) { double }
+  include_context 'a Knife command'
 
-    before(:each) do
-      allow(command).to receive(:connection) { connection }
-      allow(command).to receive(:exit) { raise 'SystemExit' }
+  let(:template) do
+    {
+      'name' => 'BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2922',
+      'osType' => 'ubuntu14_64Bit',
+      'description' => 'BOSH CLC Stemcell 2922',
+      'storageSizeGB' => 143,
+      'capabilities' => ['cpuAutoscale'],
+      'reservedDrivePaths' => ['bin'],
+      'apiOnly' => true
+    }
+  end
 
-      command.config[:clc_datacenter] = 'ca1'
+  let(:datacenter) { { 'id' => 'ca1' } }
 
-      allow(connection).to receive(:list_templates) { [] }
+  before(:each) do
+    allow(connection).to receive(:list_templates) { [template] }
+    allow(connection).to receive(:list_datacenters) { [datacenter] }
+  end
+
+  context 'considering displayed information' do
+    let(:argv) { valid_args }
+
+    subject(:output) do
+      run.call
+      stdout.string
     end
 
-    context 'considering command options' do
-      context 'with datacenter provided' do
-        it { is_expected.not_to raise_error }
+    context 'considering fields that are always shown' do
+      it { is_expected.to include(template['name']) }
+      it { is_expected.to include(template['osType']) }
+      it { is_expected.to include("#{template['storageSizeGB']} GB") }
+      it { is_expected.to include(template['capabilities'].first) }
+      it { is_expected.to include(template['description'][0..10]) }
+
+      it { is_expected.to match(/Name/i) }
+      it { is_expected.to match(/OS Type/i) }
+      it { is_expected.to match(/Description/i) }
+      it { is_expected.to match(/Storage/i) }
+      it { is_expected.to match(/Capabilities/i) }
+      it { is_expected.to match(/API Only/i) }
+    end
+
+    context 'considering ignored fields' do
+      before(:each) { template['unknownField'] = 'Something' }
+
+      it { is_expected.to_not match(/bin/) }
+      it { is_expected.to_not match(/unknownField/) }
+      it { is_expected.to_not match(/Something/) }
+    end
+
+    context 'considering situation when there is no data available' do
+      before(:each) { allow(connection).to receive(:list_templates) { [] } }
+
+      it { is_expected.not_to match(/\w/) }
+    end
+  end
+
+  context 'considering command parameters' do
+    context 'when they are valid' do
+      context 'meaning datacenter is specified' do
+        let(:argv) { valid_args }
+
+        it 'passes them correctly' do
+          expect(connection).to receive(:list_templates).
+            with('ca1').
+            and_return([template])
+
+          run.call
+        end
       end
 
-      context 'without datacenter' do
-        before(:each) { command.config.delete(:clc_datacenter) }
+      context 'meaning all option is specified' do
+        let(:argv) { %w(--all) }
 
-        context 'considering system status' do
-          it { is_expected.to raise_error(/SystemExit/) }
-        end
+        it 'passes them correctly' do
+          expect(connection).to receive(:list_templates).
+            with('ca1').
+            and_return([template])
 
-        context 'considering output' do
-          before(:each) { allow(command).to receive(:exit) }
-
-          it { is_expected.to output(/knife clc template list/i).to_stdout_from_any_process }
-          it { is_expected.to output(/required/i).to_stderr_from_any_process }
+          run.call
         end
       end
     end
 
-    context 'considering displayed information' do
-      context 'when there is data available' do
+    context 'when they are invalid' do
+      context 'meaning that required ones are missing' do
+        let(:argv) { [] }
+
         before(:each) do
-          allow(connection).to receive(:list_templates) { [template] }
+          allow(command).to receive(:exit)
+          run.call
         end
 
-        let(:template) do
-          {
-            'name' => 'BOSH-OPENSTACK-CLC-UBUNTU-TRUSTY-GO_AGENT_2922',
-            'osType' => 'ubuntu14_64Bit',
-            'description' => 'BOSH CLC Stemcell 2922',
-            'storageSizeGB' => 143,
-            'capabilities' => ['cpuAutoscale'],
-            'reservedDrivePaths' => ['bin'],
-            'apiOnly' => true
-          }
-        end
+        subject(:output) { stderr.string }
 
-        context 'considering fields that are always shown' do
-          it { is_expected.to output(/#{template['name']}/).to_stdout_from_any_process }
-          it { is_expected.to output(/#{template['osType']}/).to_stdout_from_any_process }
-          it { is_expected.to output(/#{template['storageSizeGB']} GB/).to_stdout_from_any_process }
-          it { is_expected.to output(/#{template['capabilities'].first}/).to_stdout_from_any_process }
-          it { is_expected.to output(/#{template['description'][0..10]}/).to_stdout_from_any_process }
-        end
-
-        context 'considering headers' do
-          it { is_expected.to output(/Name/).to_stdout_from_any_process }
-          it { is_expected.to output(/OS Type/).to_stdout_from_any_process }
-          it { is_expected.to output(/Description/).to_stdout_from_any_process }
-          it { is_expected.to output(/Storage/).to_stdout_from_any_process }
-          it { is_expected.to output(/Capabilities/).to_stdout_from_any_process }
-          it { is_expected.to output(/API Only/).to_stdout_from_any_process }
-        end
-
-        context 'considering ignored fields' do
-          before(:each) { template['unknownField'] = 'Something' }
-
-          it { is_expected.to_not output(/bin/).to_stdout_from_any_process }
-          it { is_expected.to_not output(/unknownField/).to_stdout_from_any_process }
-          it { is_expected.to_not output(/Something/).to_stdout_from_any_process }
-        end
-      end
-
-      context 'when there is no data available' do
-        it { is_expected.to_not output(/./).to_stdout_from_any_process }
+        it { is_expected.to match(/datacenter id is required/i) }
       end
     end
   end

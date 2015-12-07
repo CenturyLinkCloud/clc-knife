@@ -1,151 +1,137 @@
-require 'chef/knife'
 require 'chef/knife/clc_ip_create'
 
 describe Chef::Knife::ClcIpCreate do
-  subject(:command) { Chef::Knife::ClcIpCreate.new }
+  let(:valid_argv) do
+    %w(
+      --server ca1altdtest43
+      --allow ssh
+    )
+  end
+
+  it_behaves_like 'a Knife CLC command' do
+    let(:argv) { valid_argv }
+  end
+
+  include_context 'a Knife command'
+
+  let(:server_id) { 'ca1altdtest43' }
+
+  let(:ip_assignment_link) do
+    {
+      'rel' => 'status',
+      'href' => '/v2/operations/altd/status/ca1-41967',
+      'id' => 'ca1-41967'
+    }
+  end
 
   before(:each) do
-    Chef.reset!
-    Chef::Config.reset
-    allow(command).to receive(:config_file_settings) { {} }
-    command.configure_chef
+    allow(connection).to receive(:create_ip_address) do
+      { 'operation' => ip_assignment_link }
+    end
 
-    allow(command).to receive(:exit) do |code|
-      raise 'SystemExit' unless exit.zero?
+    allow(connection).to receive(:wait_for) do |&block|
+      4.times { block.call }
     end
   end
 
-  describe '#execute' do
-    subject(:execute) { -> { command.execute } }
-
-    before(:each) do
-      command.config[:clc_wait] = true
-      command.config[:clc_server] = server_id
-
-      allow(command).to receive(:connection) { connection }
-      allow(command.ui).to receive(:info) { |msg| puts msg }
-
-      allow(connection).to receive(:create_ip_address) do
-        { 'operation' => ip_assignment_link }
-      end
-
-      allow(connection).to receive(:wait_for) do |&block|
-        4.times { block.call }
-      end
-    end
-
-    let(:connection) { double }
-    let(:server_id) { 'ca1altdtest43' }
-
-    let(:ip_assignment_link) do
-      {
-        'rel' => 'status',
-        'href' => '/v2/operations/altd/status/ca1-41967',
-        'id' => 'ca1-41967'
-      }
+  context 'considering displayed information' do
+    subject(:output) do
+      run.call
+      stdout.string
     end
 
     context 'without waiting' do
-      before(:each) do
-        command.config.delete(:clc_wait)
-      end
+      let(:argv) { valid_argv }
 
-      it { is_expected.to output(/ip assignment request has been sent/i).to_stdout_from_any_process }
-      it { is_expected.to output(/knife clc operation show #{ip_assignment_link['id']}/).to_stdout_from_any_process }
+      it { is_expected.to match(/ip assignment request has been sent/i) }
+      it { is_expected.to match(/knife clc operation show #{ip_assignment_link['id']}/) }
     end
 
     context 'with waiting' do
-      it { is_expected.to output(/public ip has been assigned/i).to_stdout_from_any_process }
-      it { is_expected.to output(/knife clc server show #{server_id} --ip-details/).to_stdout_from_any_process }
+      let(:argv) { valid_argv.concat(%w(--wait)) }
+
+      it { is_expected.to match(/public ip has been assigned/i) }
+      it { is_expected.to match(/knife clc server show #{server_id} --ports/) }
     end
   end
 
-  describe '#parse_and_validate_parameters' do
-    context 'considering required parameters' do
-      subject(:errors) do
-        command.parse_options(argv)
-        command.parse_and_validate_parameters
-        command.errors
+  context 'considering command parameters' do
+    context 'when they are invalid' do
+      before(:each) do
+        allow(command).to receive(:exit)
+        run.call
       end
 
-      let(:argv) { [] }
+      subject(:output) { stderr.string }
 
-      it { is_expected.to include(match(/server id is required/i)) }
-      it { is_expected.to include(match(/protocol definition is required/i)) }
-    end
+      context 'meaning that required ones are missing' do
+        let(:argv) { [] }
 
-    context 'considering complex parameters' do
-      subject(:config) do
-        command.parse_options(argv)
-        command.parse_and_validate_parameters
-        command.config
+        it { is_expected.to match(/server id is required/i) }
+        it { is_expected.to match(/protocol permission is required/i) }
       end
 
-      context 'when they are valid' do
+      context 'meaning that complex ones are malformed' do
         let(:argv) do
           %w(
-            --allow ssh
-            --allow http
-            --allow rdp
-            --allow icmp
-            --allow http
-            --allow https
-            --allow ftp
-            --allow ftps
-            --allow udp:20-21
-            --allow tcp:91
-            --source 0.0.0.0/0
-            --source 10.0.0.0/0
+            --allow unknownProtocol
+            --allow udp:20-21-24
+            --allow tcp
           )
         end
 
-        let(:expected_sources) do
-          [
-            { 'cidr' => '0.0.0.0/0' },
-            { 'cidr' => '10.0.0.0/0' }
-          ]
-        end
+        it { is_expected.to match(/unknownProtocol/) }
+        it { is_expected.to match(/udp:20-21-24/) }
+        it { is_expected.to match(/tcp/) }
+      end
+    end
 
-        let(:expected_protocols) do
-          [
-            { 'protocol' => 'tcp', 'port' => 22 },
-            { 'protocol' => 'tcp', 'port' => 80 },
-            { 'protocol' => 'tcp', 'port' => 8080 },
-            { 'protocol' => 'tcp', 'port' => 3389 },
+    context 'when they are valid' do
+      let(:argv) do
+        %w(
+          --internal 10.0.0.1
+          --server ca1altdtest43
+          --allow udp:20-21
+          --allow icmp
+          --allow ssh
+          --allow rdp
+          --allow http
+          --allow https
+          --allow ftp
+          --allow ftps
+          --allow tcp:91
+          --source 0.0.0.0/0
+          --source 10.0.0.0/0
+        )
+      end
+
+      it 'passes them correctly' do
+        expected_params = {
+          'internalIPAddress' => '10.0.0.1',
+          'ports' => [
+            { 'protocol' => 'udp', 'port' => 20, 'portTo' => 21 },
             { 'protocol' => 'icmp' },
+            { 'protocol' => 'tcp', 'port' => 22 },
+            { 'protocol' => 'tcp', 'port' => 3389 },
             { 'protocol' => 'tcp', 'port' => 80 },
             { 'protocol' => 'tcp', 'port' => 8080 },
             { 'protocol' => 'tcp', 'port' => 443 },
             { 'protocol' => 'tcp', 'port' => 21 },
             { 'protocol' => 'tcp', 'port' => 990 },
-            { 'protocol' => 'udp', 'port' => 20, 'portTo' => 21 },
             { 'protocol' => 'tcp', 'port' => 91 }
+          ],
+          'sourceRestrictions' => [
+            { 'cidr' => '0.0.0.0/0' },
+            { 'cidr' => '10.0.0.0/0' }
           ]
-        end
+        }
 
-        it { is_expected.to include(:clc_sources => expected_sources) }
-        it { is_expected.to include(:clc_allowed_protocols => expected_protocols) }
+        expect(connection).to receive(:create_ip_address).
+          with('ca1altdtest43', hash_including(expected_params)).
+          and_return('operation' => ip_assignment_link)
+
+        run.call
       end
-    end
-
-    describe 'when they are malformed' do
-      subject(:errors) do
-        command.parse_options(argv)
-        command.parse_and_validate_parameters
-        command.errors
-      end
-
-      let(:argv) do
-        %w(
-          --allow unknownProtocol
-          --allow udp:20-21-24
-          --allow tcp
-        )
-      end
-
-      it { is_expected.to include(/unknownProtocol/) }
-      it { is_expected.to include(/udp:20-21-24/) }
-      it { is_expected.to include(/tcp/) }
     end
   end
 end

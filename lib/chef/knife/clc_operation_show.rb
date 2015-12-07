@@ -11,7 +11,8 @@ class Chef
         :long => '--wait',
         :description => 'Wait for operation completion',
         :boolean => true,
-        :default => false
+        :default => false,
+        :on => :head
 
       def parse_and_validate_parameters
         unless name_args[0]

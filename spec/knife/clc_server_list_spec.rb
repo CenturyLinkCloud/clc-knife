@@ -1,145 +1,132 @@
-require 'chef'
-require 'chef/knife'
 require 'chef/knife/clc_server_list'
 
 describe Chef::Knife::ClcServerList do
-  subject(:command) { Chef::Knife::ClcServerList.new }
+  let(:valid_argv) { %w(--datacenter ca1) }
 
-  describe '#execute' do
-    subject(:execute) { -> { command.execute } }
+  it_behaves_like 'a Knife CLC command' do
+    let(:argv) { valid_argv }
+  end
 
-    before(:each) do
-      Chef.reset!
-      Chef::Config.reset
-      allow(command).to receive(:config_file_settings) { {} }
-      command.configure_chef
+  include_context 'a Knife command'
 
-      allow(command).to receive(:exit) do |code|
-        raise 'SystemExit' unless exit.zero?
-      end
+  let(:server) do
+    {
+      'id' => 'ca1altdtest55',
+      'name' => 'CA1ALTDTEST55',
+      'description' => 'Some description',
+      'groupId' => '975a79f94b84452ea1c920325967a33c',
+      'isTemplate' => false,
+      'locationId' => 'CA1',
+      'osType' => 'Debian 7 64-bit',
+      'os' => 'debian7_64Bit',
+      'status' => 'active',
+      'details' => {
+        'ipAddresses' => [
+          { 'internal' => '10.50.48.12' },
+          { 'public' => '65.39.180.227', 'internal' => '10.50.48.15' }
+        ],
+        'secondaryIPAddresses' => [],
+        'alertPolicies' => [],
+        'cpu' => 1,
+        'diskCount' => 3,
+        'hostName' => 'ca1altdtest55',
+        'inMaintenanceMode' => false,
+        'memoryMB' => 1024,
+        'powerState' => 'started',
+        'storageGB' => 19,
+        'snapshots' => [],
+        'customFields' => []
+      },
+      'type' => 'standard',
+      'storageType' => 'premium',
+      'links' => [
+        { 'rel' => 'credentials', 'href' => '/v2/servers/altd/ca1altdtest55/credentials' },
+        { 'rel' => 'publicIPAddress', 'href' => '/v2/servers/altd/ca1altdtest55/publicIPAddresses/65.39.180.227', 'id' => '65.39.180.227' }
+      ]
+    }
+  end
 
-      allow(command).to receive(:connection) { connection }
+  let(:datacenter) { { 'id' => 'ca1' } }
 
-      command.config[:clc_datacenter] = 'ca1'
-      allow(connection).to receive(:list_datacenters) { [] }
-      allow(connection).to receive(:list_servers) { [] }
+  before(:each) do
+    allow(connection).to receive(:list_servers) { [server] }
+    allow(connection).to receive(:list_datacenters) { [datacenter] }
+  end
+
+  context 'considering displayed information' do
+    let(:argv) { valid_argv }
+
+    subject(:output) do
+      run.call
+      stdout.string
     end
 
-    let(:connection) { double }
+    context 'which is always shown' do
+      it { is_expected.to include(server['id']) }
+      it { is_expected.to include(server['name']) }
+      it { is_expected.to include(server['groupId']) }
+      it { is_expected.to include(server['links'].last['id']) }
+      it { is_expected.to include(server['locationId']) }
+      it { is_expected.to include(server['osType']) }
+      it { is_expected.to include(server['status']) }
 
-    context 'considering displayed information' do
-      context 'when there is data available' do
-        before(:each) do
-          allow(connection).to receive(:list_servers) { [server] }
-        end
+      it { is_expected.to match(/ID/i) }
+      it { is_expected.to match(/Name/i) }
+      it { is_expected.to match(/Group/i) }
+      it { is_expected.to match(/Public IP/i) }
+      it { is_expected.to match(/DC/i) }
+      it { is_expected.to match(/OS Type/i) }
+      it { is_expected.to match(/Status/i) }
+    end
 
-        let(:server) do
-          {
-            'id' => 'ca1altdtest55',
-            'name' => 'CA1ALTDTEST55',
-            'description' => 'Some description',
-            'groupId' => '975a79f94b84452ea1c920325967a33c',
-            'isTemplate' => false,
-            'locationId' => 'CA1',
-            'osType' => 'Debian 7 64-bit',
-            'os' => 'debian7_64Bit',
-            'status' => 'active',
-            'details' => {
-              'ipAddresses' => [
-                { 'internal' => '10.50.48.12' },
-                { 'public' => '65.39.180.227', 'internal' => '10.50.48.15' }
-              ],
-              'secondaryIPAddresses' => [],
-              'alertPolicies' => [],
-              'cpu' => 1,
-              'diskCount' => 3,
-              'hostName' => 'ca1altdtest55',
-              'inMaintenanceMode' => false,
-              'memoryMB' => 1024,
-              'powerState' => 'started',
-              'storageGB' => 19,
-              'snapshots' => [],
-              'customFields' => []
-            },
-            'type' => 'standard',
-            'storageType' => 'premium',
-            'links' => [
-              { 'rel' => 'credentials', 'href' => '/v2/servers/altd/ca1altdtest55/credentials' },
-              { 'rel' => 'publicIPAddress', 'href' => '/v2/servers/altd/ca1altdtest55/publicIPAddresses/65.39.180.227', 'id' => '65.39.180.227' }
-            ]
-          }
-        end
+    context 'with chef nodes parameter' do
+      let(:argv) { valid_argv.concat(%w(--chef-nodes)) }
+      let(:node) { double(:name => server['name'] + '.local', :machinename => server['name']) }
 
-        context 'considering fields that are always shown' do
-          it { is_expected.to output(/#{server['id']}/i).to_stdout_from_any_process }
-          it { is_expected.to output(/#{server['name']}/i).to_stdout_from_any_process }
-          it { is_expected.to output(/#{server['groupId']}/i).to_stdout_from_any_process }
-          it { is_expected.to output(/#{Regexp.quote(server['links'].last['id'])}/).to_stdout_from_any_process }
-          it { is_expected.to output(/#{server['locationId']}/i).to_stdout_from_any_process }
-          it { is_expected.to output(/#{server['osType']}/i).to_stdout_from_any_process }
-          it { is_expected.to output(/#{server['status']}/i).to_stdout_from_any_process }
-        end
-
-        context 'considering headers' do
-          it { is_expected.to output(/ID/).to_stdout_from_any_process }
-          it { is_expected.to output(/Name/).to_stdout_from_any_process }
-          it { is_expected.to output(/Group/).to_stdout_from_any_process }
-          it { is_expected.to output(/Public IP/).to_stdout_from_any_process }
-          it { is_expected.to output(/DC/).to_stdout_from_any_process }
-          it { is_expected.to output(/OS Type/).to_stdout_from_any_process }
-          it { is_expected.to output(/Status/i).to_stdout_from_any_process }
-        end
-
-        context 'when datacenter specified' do
-          before(:each) do
-            command.config[:clc_datacenter] = 'ca1'
-          end
-
-          it { is_expected.not_to raise_error }
-        end
-
-        context 'when all opton is specified' do
-          before(:each) do
-            command.config.delete(:clc_datacenter)
-            command.config[:clc_all] = true
-            allow(connection).to receive(:list_datacenters) { [datacenter] }
-          end
-
-          let(:datacenter) { { 'id' => 'ca1' } }
-
-          it { is_expected.not_to raise_error }
-        end
-
-        context 'considering chef nodes' do
-          before(:each) do
-            command.config[:clc_chef_nodes] = true
-            allow(Chef::Node).to receive(:list) { { node.name => node } }
-          end
-
-          let(:node) { double(:name => server['name'] + '.local', :machinename => server['name']) }
-
-          it { is_expected.to output(/Chef Node/).to_stdout_from_any_process }
-          it { is_expected.to output(/#{node.name}/).to_stdout_from_any_process }
-        end
+      before(:each) do
+        allow(Chef::Node).to receive(:list) { { node.name => node } }
       end
+
+      it { is_expected.to match(/Chef Node/) }
+      it { is_expected.to include(node.name) }
     end
   end
 
-  describe '#parse_and_validate_parameters' do
-    context 'considering required parameters' do
-      subject(:errors) do
-        command.parse_options(argv)
-        command.parse_and_validate_parameters
-        command.errors
+  context 'considering command parameters' do
+    context 'when they are valid' do
+      context 'meaning datacenter is specified' do
+        let(:argv) { valid_argv }
+
+        it 'passes them correctly' do
+          expect(connection).to receive(:list_servers).with(datacenter['id'])
+
+          run.call
+        end
       end
 
-      let(:argv) { [] }
+      context 'meaning all option is specified' do
+        let(:argv) { %w(--all) }
 
-      it { is_expected.to include(match(/datacenter id is required/i)) }
+        it 'passes them correctly' do
+          expect(connection).to receive(:list_servers).with(datacenter['id'])
 
-      it 'does not print an error if all option specified' do
-        argv << '--all'
-        expect(errors).to be_empty
+          run.call
+        end
+      end
+    end
+
+    context 'when they are invalid' do
+      before(:each) do
+        allow(command).to receive(:exit)
+        run.call
+      end
+
+      subject(:output) { stderr.string }
+
+      context 'meaning that required ones are missing' do
+        let(:argv) { [] }
+
+        it { is_expected.to match(/datacenter id is required/i) }
       end
     end
   end

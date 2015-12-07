@@ -7,15 +7,42 @@ class Chef
     module ClcBase
       def self.included(klass)
         klass.class_eval do
+          option :clc_username,
+            :long => '--username NAME',
+            :description => 'Name of the user to access CLC API',
+            :on => :head
+
+          option :clc_password,
+            :long => '--password PASSWORD',
+            :description => 'Password for CLC user account',
+            :on => :head
+
           def connection
-            @connection ||= ::Clc::Client.new(:verbosity => Chef::Config[:verbosity])
+            @connection ||= ::Clc::Client.new(
+              :username => config[:clc_username],
+              :password => config[:clc_password],
+              :verbosity => Chef::Config[:verbosity]
+            )
+          end
+
+          attr_writer :context
+
+          def context
+            @context ||= {}
           end
 
           def run
             $stdout.sync = true
+
             parse_and_validate_parameters
-            check_for_errors!
-            execute
+
+            if errors.any?
+              show_errors
+              show_usage
+              exit 1
+            else
+              execute
+            end
           end
 
           def parse_and_validate_parameters
@@ -28,12 +55,8 @@ class Chef
             @errors ||= []
           end
 
-          def check_for_errors!
-            unless errors.empty?
-              errors.each { |message| ui.error message }
-              show_usage
-              exit 1
-            end
+          def show_errors
+            errors.each { |message| ui.error message }
           end
         end
       end

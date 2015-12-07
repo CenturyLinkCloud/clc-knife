@@ -7,8 +7,8 @@ class Chef
 
       banner 'knife clc datacenter list (options)'
 
-      def run
-        $stdout.sync = true
+      def execute
+        context[:datacenters] = connection.list_datacenters
         render
       end
 
@@ -23,18 +23,12 @@ class Chef
         }
       end
 
-      def data
-        connection.list_datacenters
-      end
-
       def render
-        output = Hirb::Helpers::AutoTable.render(data,
+        ui.info Hirb::Helpers::AutoTable.render(context[:datacenters],
           :fields => fields,
           :headers => headers,
           :resize => false,
           :description => false)
-
-        puts output
       end
     end
   end
