@@ -1,5 +1,4 @@
 require 'knife-clc/version'
-require 'formatador'
 require 'hirb'
 require 'clc'
 
