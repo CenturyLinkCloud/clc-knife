@@ -34,12 +34,7 @@ module Clc
 
       def error_message_400(response)
         "#{response[:method].to_s.upcase} #{response[:url]}: \
-         #{response[:status]} #{error_body(response[:body])}"
-      end
-
-      def error_body(body)
-        return '' unless body
-        body['message']
+         #{response[:status]} #{response[:body]}"
       end
 
       def error_message_500(response, body = nil)
