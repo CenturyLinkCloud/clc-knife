@@ -1,22 +1,31 @@
+require 'chef'
 require 'chef/knife'
 require 'chef/knife/clc_server_list'
 
 describe Chef::Knife::ClcServerList do
   subject(:command) { Chef::Knife::ClcServerList.new }
 
-  describe '#run' do
-    subject(:run) { -> { command.run } }
-
-    let(:connection) { double }
+  describe '#execute' do
+    subject(:execute) { -> { command.execute } }
 
     before(:each) do
+      Chef.reset!
+      Chef::Config.reset
+      allow(command).to receive(:config_file_settings) { {} }
+      command.configure_chef
+
+      allow(command).to receive(:exit) do |code|
+        raise 'SystemExit' unless exit.zero?
+      end
+
       allow(command).to receive(:connection) { connection }
-      allow(command).to receive(:exit) { raise 'SystemExit' }
 
       command.config[:clc_datacenter] = 'ca1'
       allow(connection).to receive(:list_datacenters) { [] }
       allow(connection).to receive(:list_servers) { [] }
     end
+
+    let(:connection) { double }
 
     context 'considering displayed information' do
       context 'when there is data available' do
@@ -52,36 +61,44 @@ describe Chef::Knife::ClcServerList do
       end
     end
 
-    context 'considering command options' do
-      context 'with datacenter provided' do
+    context 'considering datacenter scoping' do
+      context 'when datacenter specified' do
+        before(:each) do
+          command.config[:clc_datacenter] = 'ca1'
+        end
+
         it { is_expected.not_to raise_error }
       end
 
-      context 'without datacenter' do
-        before(:each) { command.config.delete(:clc_datacenter) }
-
-        context 'considering system status' do
-          it { is_expected.to raise_error(/SystemExit/) }
-        end
-
-        context 'considering output' do
-          before(:each) { allow(command).to receive(:exit) }
-
-          it { is_expected.to output(/Datacenter ID is required/i).to_stderr_from_any_process }
-        end
-      end
-
-      context 'without datacenter but with all option' do
+      context 'when all opton is specified' do
         before(:each) do
           command.config.delete(:clc_datacenter)
           command.config[:clc_all] = true
-
           allow(connection).to receive(:list_datacenters) { [datacenter] }
         end
 
         let(:datacenter) { { 'id' => 'ca1' } }
 
         it { is_expected.not_to raise_error }
+      end
+    end
+  end
+
+  describe '#parse_and_validate_parameters' do
+    context 'considering required parameters' do
+      subject(:errors) do
+        command.parse_options(argv)
+        command.parse_and_validate_parameters
+        command.errors
+      end
+
+      let(:argv) { [] }
+
+      it { is_expected.to include(match(/datacenter id is required/i)) }
+
+      it 'does not print an error if all option specified' do
+        argv << '--all'
+        expect(errors).to be_empty
       end
     end
   end

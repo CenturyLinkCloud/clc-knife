@@ -17,9 +17,7 @@ class Chef
         :default => false,
         :description => 'The attribute to return a list of all servers from all datacenters'
 
-      def run
-        $stdout.sync = true
-        validate!
+      def execute
         render
       end
 
@@ -62,17 +60,16 @@ class Chef
           :headers => headers,
           :fields => fields,
           :filters => filters,
-          :resize => false)
+          :resize => false,
+          :description => false)
 
         puts output
       end
 
-      def validate!
+      def parse_and_validate_parameters
         if config[:clc_datacenter].nil? && !config[:clc_all]
           errors << 'Datacenter ID is required'
         end
-
-        check_for_errors!
       end
     end
   end
