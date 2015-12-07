@@ -38,18 +38,14 @@ module Clc
 
     def list_servers(datacenter_id = 'ca1')
       datacenter = show_datacenter(datacenter_id)
-
       group_links = datacenter['links'].select { |l| l['rel'] == 'group' }
 
       groups = group_links.map do |link|
-        connection.get(link['href']).body
-      end
+        group = connection.get("v2/groups/#{@account}/#{link['id']}?serverDetail=detailed").body
+        flatten_groups(group)
+      end.flatten
 
-      links = find_server_links(groups)
-
-      links.map do |link|
-        connection.get(link['href']).body
-      end
+      groups.map { |group| group['servers'] }.flatten.compact
     end
 
     def show_server(id, uuid = false)
@@ -137,8 +133,8 @@ module Clc
       connection.get("v2/operations/#{account}/status/#{id}").body
     end
 
-    def show_group(id)
-      connection.get("v2/groups/#{account}/#{id}").body
+    def show_group(id, params = {})
+      connection.get("v2/groups/#{account}/#{id}", params).body
     end
 
     def list_groups(datacenter_id)

@@ -1,6 +1,5 @@
 AllCops:
   Exclude:
-    - "lib/chef/**/*"
     - "knife-clc.gemspec"
     - "spec/spec_helper.rb"
     - "Rakefile"
