@@ -20,6 +20,24 @@ describe Clc::Client do
     end
   end
 
+  describe '#create_group' do
+    let(:params) do
+      {
+        'name' => 'group name',
+        'description' => 'group description',
+        'parentGroupId' => '975a79f94b84452ea1c920325967a33c',
+      }
+    end
+
+    context 'with valid params', with_vcr('client/create_group/valid') do
+      subject(:creation_response) { client.create_group(params) }
+
+      it 'returns data about created group' do
+        expect(creation_response['name']).to eq 'group name'
+      end
+    end
+  end
+
   describe '#create_server' do
     let(:params) do
       {

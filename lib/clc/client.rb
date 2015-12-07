@@ -145,6 +145,10 @@ module Clc
       flatten_groups(show_group(root_group_link['id']))
     end
 
+    def create_group(params)
+      connection.post("/v2/groups/#{account}", params).body
+    end
+
     def follow(link)
       connection.get(link['href']).body
     end

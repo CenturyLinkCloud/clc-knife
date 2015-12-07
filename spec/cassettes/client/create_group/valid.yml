@@ -1,0 +1,82 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/authentication/login
+    body:
+      encoding: UTF-8
+      string: "{\"username\":\"<CLC_USERNAME>\",\"password\":\"<CLC_PASSWORD>\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Thu, 03 Dec 2015 17:41:19 GMT
+      Content-Length:
+      - '738'
+    body:
+      encoding: UTF-8
+      string: "{\"userName\":\"<CLC_USERNAME>\",\"accountAlias\":\"ALTD\",\"locationAlias\":\"VA1\",\"roles\":[\"AccountAdmin\",\"AccountViewer\",\"BillingAdmin\",\"DNSManager\",\"NetworkAdmin\",\"SecurityAdmin\",\"ServerAdmin\",\"ServerOperator\",\"ServerScheduler\"],\"bearerToken\":\"<CLC_BEARER_TOKEN>\"}"
+    http_version: 
+  recorded_at: Thu, 03 Dec 2015 17:41:28 GMT
+- request:
+    method: post
+    uri: https://api.ctl.io/v2/groups/ALTD
+    body:
+      encoding: UTF-8
+      string: "{\"name\":\"group name\",\"description\":\"group description\",\"parentGroupId\":\"975a79f94b84452ea1c920325967a33c\"}"
+    headers:
+      User-Agent:
+      - Faraday v0.9.2
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 201
+      message: Created
+    headers:
+      Cache-Control:
+      - no-cache
+      Pragma:
+      - no-cache
+      Content-Type:
+      - application/json; charset=utf-8
+      Expires:
+      - "-1"
+      Location:
+      - "/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9"
+      Date:
+      - Thu, 03 Dec 2015 17:41:19 GMT
+      Content-Length:
+      - '1485'
+    body:
+      encoding: UTF-8
+      string: "{\"id\":\"a894b59212ac48e2a2bb568d1242f5f9\",\"name\":\"group name\",\"description\":\"group
+        description\",\"locationId\":\"CA1\",\"type\":\"default\",\"status\":\"active\",\"groups\":[],\"links\":[{\"rel\":\"createGroup\",\"href\":\"/v2/groups/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"createServer\",\"href\":\"/v2/servers/altd\",\"verbs\":[\"POST\"]},{\"rel\":\"self\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9\",\"verbs\":[\"GET\",\"PATCH\",\"DELETE\"]},{\"rel\":\"parentGroup\",\"href\":\"/v2/groups/altd/975a79f94b84452ea1c920325967a33c\",\"id\":\"975a79f94b84452ea1c920325967a33c\"},{\"rel\":\"defaults\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/defaults\",\"verbs\":[\"GET\",\"POST\"]},{\"rel\":\"billing\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/billing\"},{\"rel\":\"archiveGroupAction\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/archive\"},{\"rel\":\"statistics\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/statistics\"},{\"rel\":\"upcomingScheduledActivities\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/upcomingScheduledActivities\"},{\"rel\":\"horizontalAutoscalePolicyMapping\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/horizontalAutoscalePolicy\",\"verbs\":[\"GET\",\"PUT\",\"DELETE\"]},{\"rel\":\"scheduledActivities\",\"href\":\"/v2/groups/altd/a894b59212ac48e2a2bb568d1242f5f9/scheduledActivities\",\"verbs\":[\"GET\",\"POST\"]}],\"changeInfo\":{\"createdBy\":\"<CLC_USERNAME>\",\"createdDate\":\"2015-12-03T17:41:19Z\",\"modifiedBy\":\"<CLC_USERNAME>\",\"modifiedDate\":\"2015-12-03T17:41:19Z\"},\"customFields\":[]}"
+    http_version: 
+  recorded_at: Thu, 03 Dec 2015 17:41:29 GMT
+recorded_with: VCR 3.0.0
