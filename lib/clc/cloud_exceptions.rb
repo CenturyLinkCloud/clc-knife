@@ -7,6 +7,7 @@ module Clc
     class NotFound < Error; end
     class InternalServerError < Error; end
     class UnknownError < Error; end
+    class MethodNotAllowed < Error; end
 
     class Handler < Faraday::Response::Middleware
       def on_complete(response)
@@ -19,6 +20,8 @@ module Clc
           raise Clc::CloudExceptions::Forbidden, error_message(response)
         when 404
           raise Clc::CloudExceptions::NotFound, error_message(response)
+        when 405
+          raise Clc::CloudExceptions::MethodNotAllowed, error_message(response)
         when 500
           raise Clc::CloudExceptions::InternalServerError, error_message(response)
         when 400..600

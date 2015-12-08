@@ -42,4 +42,10 @@ describe Clc::CloudExceptions::Handler do
       expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::UnknownError)
     end
   end
+
+  context 'when cloud fails with Method Not Allowed error', with_vcr('cloud_exceptions/handler/method_not_allowed') do
+    it 'raises MethodNotAllowed exception' do
+      expect { client.list_datacenters }.to raise_error(Clc::CloudExceptions::MethodNotAllowed)
+    end
+  end
 end
