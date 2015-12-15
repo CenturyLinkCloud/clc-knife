@@ -52,15 +52,6 @@ module Clc
       connection.get("/v2/servers/#{@account}/#{id}?uuid=#{uuid}").body
     end
 
-    def find_server_links(groups)
-      groups.map do |group|
-        if group['serversCount'] > 0
-          servers = group['links'].select { |link| link['rel'] == 'server' }
-          servers + find_server_links(group['groups'])
-        end
-      end.flatten.compact
-    end
-
     # TODO: Takes a lot of time
     def create_server(params)
       body = connection.post("/v2/servers/#{account}", params).body

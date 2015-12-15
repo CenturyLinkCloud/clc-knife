@@ -10,41 +10,40 @@ class Chef
       option :clc_datacenter,
         :long => '--datacenter ID',
         :short => '-D ID',
-        :description => 'Datacenter ID to show templates from'
+        :description => 'Datacenter ID to show templates from',
+        :on => :head
 
       option :clc_view,
         :long => '--view VIEW',
         :default => 'tree',
-        :description => 'Display output either as a table or a tree'
+        :description => 'Display output either as a table or a tree',
+        :on => :head
 
-      def run
-        $stdout.sync = true
-        validate!
-        render
-      end
-
-      def validate!
-        errors = []
-
+      def parse_and_validate_parameters
         unless config[:clc_datacenter]
-          errors << 'Datacenter option is required'
+          errors << 'Datacenter ID is required'
         end
 
         unless %w(tree table).include?(config[:clc_view])
           errors << 'View parameter should be either table or a tree'
         end
+      end
 
-        if errors.any?
-          errors.each { |message| ui.error message }
-          show_usage
-          exit 1
+      def execute
+        context[:groups] = connection.list_groups(config[:clc_datacenter]).map do |group|
+          parent_link = group['links'].find { |link| link['rel'] == 'parentGroup' }
+          group['parentId'] = parent_link['id'] if parent_link
+          group
         end
+
+        render
       end
 
       def filters
         {
           'serversCount' => ->(count) { count.zero? ? '-' : count },
-          'parentId' => ->(id) { id ? id : '-' }
+          'parentId' => ->(id) { id ? id : '-' },
+          'description' => ->(description) { description.to_s.empty? ? '-' : description }
         }
       end
 
@@ -62,7 +61,7 @@ class Chef
         {
           'name' => 'Name',
           'id' => 'ID',
-          'parentId' => 'Parent ID',
+          'parentId' => 'Parent',
           'description' => 'Description',
           'serversCount' => 'Servers',
           'type' => 'Type',
@@ -74,17 +73,6 @@ class Chef
         case config[:clc_view]
         when 'tree' then render_tree
         when 'table' then render_table
-        else
-          ui.error "Unknown view: #{config[:clc_view]}"
-          exit 1
-        end
-      end
-
-      def data
-        @data ||= connection.list_groups(config[:clc_datacenter]).map do |group|
-          parent_link = group['links'].find { |link| link['rel'] == 'parentGroup' }
-          group['parentId'] = parent_link['id'] if parent_link
-          group
         end
       end
 
@@ -92,30 +80,27 @@ class Chef
         display_value = ->(group) { "#{group['name']} (#{group['id']})" }
 
         group_children = ->(parent_group) do
-          data.select { |group| group['parentId'] == parent_group['id'] }
+          context[:groups].select { |group| group['parentId'] == parent_group['id'] }
         end
 
-        root = data.find { |group| group['parentId'].nil? }
+        root = context[:groups].find { |group| group['parentId'].nil? }
 
         return unless root
-        output = Hirb::Helpers::ParentChildTree.render(root,
+
+        ui.info Hirb::Helpers::ParentChildTree.render(root,
           :type => :directory,
           :value_method => display_value,
           :children_method => group_children)
-
-        puts output
       end
 
       def render_table
-        output = Hirb::Helpers::AutoTable.render(data,
+        ui.info Hirb::Helpers::AutoTable.render(context[:groups],
           :fields => fields,
           :headers => headers,
           :filters => filters,
           :max_fields => width_limits,
           :resize => false,
           :description => false)
-
-        puts output
       end
     end
   end

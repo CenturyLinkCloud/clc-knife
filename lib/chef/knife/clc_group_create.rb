@@ -9,25 +9,27 @@ class Chef
 
       option :clc_name,
         :long => '--name NAME',
-        :description => 'Name of the group to create'
+        :description => 'Name of the group to create',
+        :on => :head
 
       option :clc_description,
         :long => '--description DESCRIPTION',
-        :description => 'User-defined description of this group'
+        :description => 'User-defined description of this group',
+        :on => :head
 
       option :clc_parent,
         :long => '--parent ID',
-        :description => "ID of the parent group. Retrieved from query to parent group, or by looking at the URL on the UI pages in the Control Portal"
+        :description => "ID of the parent group. Retrieved from query to parent group, or by looking at the URL on the UI pages in the Control Portal",
+        :on => :head
 
       option :clc_custom_fields,
         :long => '--custom-field KEY=VALUE',
         :description => 'Custom field key-value pair',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_custom_fields] ||= []
           Chef::Config[:knife][:clc_custom_fields] << param
         end
-
-      attr_accessor :data
 
       def parse_and_validate_parameters
         unless config[:clc_name]
@@ -38,7 +40,14 @@ class Chef
           errors << 'Parent Group ID is required'
         end
 
-        config[:clc_custom_fields] && config[:clc_custom_fields].map! do |param|
+        custom_fields = config[:clc_custom_fields]
+        if custom_fields && custom_fields.any?
+          parse_custom_fields(custom_fields)
+        end
+      end
+
+      def parse_custom_fields(custom_fields)
+        custom_fields.map! do |param|
           key, value = param.split('=', 2)
 
           unless key && value
@@ -60,9 +69,13 @@ class Chef
       end
 
       def execute
-        self.data = connection.create_group(prepare_group_params)
-        self.data['parent'] = self.data['links'].detect { |l| l['rel'] == 'parentGroup' }['id']
-        render_group
+        group = connection.create_group(prepare_group_params)
+        parent_link = group['links'].detect { |link| link['rel'] == 'parentGroup' }
+        group['parent'] = parent_link['id']
+
+        context[:group] = group
+
+        render
       end
 
       def fields
@@ -81,13 +94,15 @@ class Chef
         }
       end
 
-      def render_group
+      def render
+        group = context[:group]
+
         fields.each do |field|
           header = headers.fetch(field, field.capitalize)
-          value = data.fetch(field, '-')
+          value = group.fetch(field, '-')
 
           if value
-            puts ui.color(header, :bold) + ': ' + value.to_s
+            ui.info ui.color(header, :bold) + ': ' + value.to_s
           end
         end
       end

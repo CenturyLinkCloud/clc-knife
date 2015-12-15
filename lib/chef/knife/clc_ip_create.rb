@@ -9,15 +9,18 @@ class Chef
 
       option :clc_server,
         :long => '--server ID',
-        :description => 'ID of the server to assign IP to'
+        :description => 'ID of the server to assign IP to',
+        :on => :head
 
       option :clc_internal_ip,
         :long => '--internal IP',
-        :description => 'The internal (private) IP address to map to the new public IP address'
+        :description => 'The internal (private) IP address to map to the new public IP address',
+        :on => :head
 
       option :clc_allowed_protocols,
-        :long => '--allow PROTOCOL:FROM-TO',
+        :long => '--allow PROTOCOL:FROM[-TO]',
         :description => 'Assigns public IP with permissions for specified protocol',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_allowed_protocols] ||= []
           Chef::Config[:knife][:clc_allowed_protocols] << param
@@ -26,6 +29,7 @@ class Chef
       option :clc_sources,
         :long => '--source CIDR',
         :description => 'The source IP address range allowed to access the new public IP address',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_sources] ||= []
           Chef::Config[:knife][:clc_sources] << param
@@ -35,57 +39,67 @@ class Chef
         :long => '--wait',
         :description => 'Wait for operation completion',
         :boolean => true,
-        :default => false
-
-      attr_accessor :data
+        :default => false,
+        :on => :head
 
       def parse_and_validate_parameters
         unless config[:clc_server]
           errors << 'Server ID is required'
         end
 
-        if config[:clc_allowed_protocols]
-          config[:clc_allowed_protocols].map! do |param|
-            protocol, port_range = param.split(':', 2)
-
-            case protocol.downcase
-            when 'ssh', 'sftp' then { 'protocol' => 'tcp', 'port' => 22 }
-            when 'rdp' then { 'protocol' => 'tcp', 'port' => 3389 }
-            when 'icmp' then { 'protocol' => 'icmp' }
-            when 'http' then [{ 'protocol' => 'tcp', 'port' => 80 }, { 'protocol' => 'tcp', 'port' => 8080 }]
-            when 'https' then { 'protocol' => 'tcp', 'port' => 443 }
-            when 'ftp' then { 'protocol' => 'tcp', 'port' => 21 }
-            when 'ftps' then { 'protocol' => 'tcp', 'port' => 990 }
-            when 'udp', 'tcp'
-              unless port_range
-                errors << "No ports specified for #{param}"
-              else
-                ports = port_range.split('-').map do |port_string|
-                  Integer(port_string) rescue nil
-                end
-
-                if ports.any?(&:nil?) || ports.size > 2 || ports.size < 1
-                  errors << "Malformed port range for #{param}"
-                end
-
-                {
-                  'protocol' => protocol.downcase,
-                  'port' => ports[0],
-                  'portTo' => ports[1]
-                }.keep_if { |_, value| value }
-              end
-            else
-              errors << "Unsupported protocol for #{param}"
-            end
-          end
-          config[:clc_allowed_protocols].flatten!
+        permissions = config[:clc_allowed_protocols]
+        if permissions && permissions.any?
+          parse_protocol_permissions(permissions)
         else
-          errors << 'At least one protocol definition is required'
+          errors << 'At least one protocol permission is required'
         end
 
-        config[:clc_sources] && config[:clc_sources].map! do |cidr|
-          { 'cidr' => cidr }
+        sources = config[:clc_sources]
+        if sources && sources.any?
+          parse_sources(sources)
         end
+      end
+
+      def parse_protocol_permissions(permissions)
+        permissions.map! do |param|
+          protocol, port_range = param.split(':', 2)
+
+          case protocol.downcase
+          when 'ssh', 'sftp' then { 'protocol' => 'tcp', 'port' => 22 }
+          when 'rdp' then { 'protocol' => 'tcp', 'port' => 3389 }
+          when 'icmp' then { 'protocol' => 'icmp' }
+          when 'http' then [{ 'protocol' => 'tcp', 'port' => 80 }, { 'protocol' => 'tcp', 'port' => 8080 }]
+          when 'https' then { 'protocol' => 'tcp', 'port' => 443 }
+          when 'ftp' then { 'protocol' => 'tcp', 'port' => 21 }
+          when 'ftps' then { 'protocol' => 'tcp', 'port' => 990 }
+          when 'udp', 'tcp'
+            unless port_range
+              errors << "No ports specified for #{param}"
+            else
+              ports = port_range.split('-').map do |port_string|
+                Integer(port_string) rescue nil
+              end
+
+              if ports.any?(&:nil?) || ports.size > 2 || ports.size < 1
+                errors << "Malformed port range for #{param}"
+              end
+
+              {
+                'protocol' => protocol.downcase,
+                'port' => ports[0],
+                'portTo' => ports[1]
+              }.keep_if { |_, value| value }
+            end
+          else
+            errors << "Unsupported protocol for #{param}"
+          end
+        end
+
+        permissions.flatten!
+      end
+
+      def parse_sources(sources)
+        sources.map! { |cidr| { 'cidr' => cidr } }
       end
 
       def prepare_ip_params
@@ -104,7 +118,7 @@ class Chef
           connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
           ui.info 'Public IP has been assigned'
-          ui.info "You can look at new network configuration with `knife clc server show #{config[:clc_server]} --ip-details"
+          ui.info "You can look at new network configuration with `knife clc server show #{config[:clc_server]} --ports"
         else
           ui.info 'IP assignment request has been sent'
           ui.info "You can check assignment operation status with 'knife clc operation show #{links['operation']['id']}'"

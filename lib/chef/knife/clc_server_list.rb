@@ -8,30 +8,32 @@ class Chef
       banner 'knife clc server list (options)'
 
       option :clc_datacenter,
-        :long => '--datacenter VALUE',
-        :description => 'Short string representing the data center you are querying'
+        :long => '--datacenter ID',
+        :description => 'Short string representing the data center you are querying',
+        :on => :head
 
       option :clc_all,
         :long => '--all',
         :boolean => true,
         :default => false,
-        :description => 'The attribute to return a list of all servers from all datacenters'
+        :description => 'The attribute to return a list of all servers from all datacenters',
+        :on => :head
 
       option :clc_chef_nodes,
         :long => '--chef-nodes',
         :boolean => true,
         :default => false,
-        :description => 'Wherever to include Chef node names in the listing or not'
+        :description => 'Wherever to include Chef node names in the listing or not',
+        :on => :head
 
       def execute
-        render
-      end
-
-      def collection
         servers = cloud_servers
         merge_public_ips!(servers)
         merge_chef_nodes!(servers) if config[:clc_chef_nodes]
-        servers
+
+        context[:servers] = servers
+
+        render
       end
 
       def merge_public_ips!(servers)
@@ -89,14 +91,12 @@ class Chef
       end
 
       def render
-        output = Hirb::Helpers::AutoTable.render(collection,
+        ui.info Hirb::Helpers::AutoTable.render(context[:servers],
           :headers => headers,
           :fields => fields,
           :filters => filters,
           :resize => false,
           :description => false)
-
-        puts output
       end
 
       def parse_and_validate_parameters

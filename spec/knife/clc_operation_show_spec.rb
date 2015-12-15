@@ -1,55 +1,71 @@
-require 'chef/knife'
 require 'chef/knife/clc_operation_show'
 
 describe Chef::Knife::ClcOperationShow do
-  subject(:command) { Chef::Knife::ClcOperationShow.new }
+  let(:valid_argv) { %w(ca1-41967) }
 
-  describe '#execute' do
-    subject(:execute) { -> { command.execute } }
+  it_behaves_like 'a Knife CLC command' do
+    let(:argv) { valid_argv }
+  end
 
-    before(:each) do
-      allow(command).to receive(:config_file_settings) { {} }
-      command.configure_chef
-      command.config[:clc_wait] = true
-      command.name_args = [operation_id]
+  include_context 'a Knife command'
 
-      allow(command).to receive(:connection) { connection }
-      allow(command.ui).to receive(:info) { |msg| puts msg }
-      allow(connection).to receive(:show_operation) { operation }
+  let(:operation_id) { 'ca1-41967' }
+  let(:operation) { { 'status' => 'succeeded' } }
 
-      allow(connection).to receive(:wait_for) do |&block|
-        4.times { block.call }
-      end
-    end
+  before(:each) do
+    allow(connection).to receive(:show_operation).
+      with(operation_id) { operation }
 
-    let(:connection) { double }
-    let(:operation_id) { 'ca1-41967' }
-    let(:operation) { { 'status' => 'succeeded' } }
-
-    context 'without waiting' do
-      before(:each) do
-        command.config.delete(:clc_wait)
-      end
-
-      it { is_expected.to output(/Status/).to_stdout_from_any_process }
-      it { is_expected.to output(/#{operation['status']}/).to_stdout_from_any_process }
-    end
-
-    context 'with waiting' do
-      it { is_expected.to output(/waiting for operation/i).to_stdout_from_any_process }
-      it { is_expected.to output(/has been completed/).to_stdout_from_any_process }
-      it { is_expected.to_not output(/Status/).to_stdout_from_any_process }
+    allow(connection).to receive(:wait_for) do |&block|
+      4.times { block.call }
     end
   end
 
-  describe '#parse_and_validate_parameters' do
-    context 'considering required parameters' do
-      subject(:errors) do
-        command.parse_and_validate_parameters
-        command.errors
+  context 'considering displayed information' do
+    before(:each) { run.call }
+
+    subject(:output) { stdout.string }
+
+    context 'with waiting' do
+      let(:argv) { valid_argv.concat(%w(--wait)) }
+
+      it { is_expected.to match(/waiting for operation/i) }
+      it { is_expected.to match(/has been completed/) }
+      it { is_expected.to_not match(/Status/) }
+    end
+
+    context 'without waiting' do
+      let(:argv) { valid_argv }
+
+      it { is_expected.to match(/Status/i) }
+      it { is_expected.to include(operation['status']) }
+    end
+  end
+
+  context 'considering command parameters' do
+    context 'when they are invalid' do
+      before(:each) do
+        allow(command).to receive(:exit)
+        run.call
       end
 
-      it { is_expected.to include(match(/operation id is required/i)) }
+      subject(:output) { stderr.string }
+
+      context 'meaning required ones are missing' do
+        it { is_expected.to match(/operation id is required/i) }
+      end
+    end
+
+    context 'when they are valid' do
+      let(:argv) { valid_argv }
+
+      it 'passes them correctly' do
+        expect(connection).to receive(:show_operation).
+          with(operation_id).
+          and_return(operation)
+
+        run.call
+      end
     end
   end
 end

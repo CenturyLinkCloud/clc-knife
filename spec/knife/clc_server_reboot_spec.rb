@@ -1,64 +1,80 @@
-require 'chef/knife'
 require 'chef/knife/clc_server_reboot'
 
 describe Chef::Knife::ClcServerReboot do
-  subject(:command) { Chef::Knife::ClcServerReboot.new }
+  let(:valid_argv) { %w(ca1altdtest43) }
 
-  describe '#execute' do
-    subject(:execute) { -> { command.execute } }
+  it_behaves_like 'a Knife CLC command' do
+    let(:argv) { valid_argv }
+  end
 
-    before(:each) do
-      allow(command).to receive(:config_file_settings) { {} }
-      command.configure_chef
-      command.config[:clc_wait] = true
-      command.name_args = [server_id]
+  include_context 'a Knife command'
 
-      allow(command).to receive(:connection) { connection }
-      allow(command.ui).to receive(:info) { |msg| puts msg }
+  let(:server_id) { 'ca1altdtest43' }
 
-      allow(connection).to receive(:reboot_server) do
-        { 'operation' => reboot_server_link }
-      end
+  let(:reboot_server_link) do
+    {
+      'rel' => 'status',
+      'href' => '/v2/operations/altd/status/ca1-41967',
+      'id' => 'ca1-41967'
+    }
+  end
 
-      allow(connection).to receive(:wait_for) do |&block|
-        4.times { block.call }
-      end
+  before(:each) do
+    allow(connection).to receive(:reboot_server) do
+      { 'operation' => reboot_server_link }
     end
 
-    let(:connection) { double }
-    let(:server_id) { 'ca1altdtest43' }
-
-    let(:reboot_server_link) do
-      {
-        'rel' => 'status',
-        'href' => '/v2/operations/altd/status/ca1-41967',
-        'id' => 'ca1-41967'
-      }
-    end
-
-    context 'without waiting' do
-      before(:each) do
-        command.config.delete(:clc_wait)
-      end
-
-      it { is_expected.to output(/reboot request has been sent/i).to_stdout_from_any_process }
-      it { is_expected.to output(/knife clc operation show #{reboot_server_link['id']}/).to_stdout_from_any_process }
-    end
-
-    context 'with waiting' do
-      it { is_expected.to output(/server has been rebooted/i).to_stdout_from_any_process }
-      it { is_expected.to_not output(/knife clc/).to_stdout_from_any_process }
+    allow(connection).to receive(:wait_for) do |&block|
+      4.times { block.call }
     end
   end
 
-  describe '#parse_and_validate_parameters' do
-    context 'considering required parameters' do
-      subject(:errors) do
-        command.parse_and_validate_parameters
-        command.errors
+  context 'considering displayed information' do
+    before(:each) { run.call }
+
+    subject(:output) { stdout.string }
+
+    context 'without waiting' do
+      let(:argv) { valid_argv }
+
+      it { is_expected.to match(/reboot request has been sent/i) }
+      it { is_expected.to match(/knife clc operation show #{reboot_server_link['id']}/) }
+    end
+
+    context 'with waiting' do
+      let(:argv) { valid_argv.concat(%w(--wait)) }
+
+      it { is_expected.to match(/server has been rebooted/i) }
+      it { is_expected.to_not match(/knife clc/) }
+    end
+  end
+
+  context 'considering command parameters' do
+    context 'when they are valid' do
+      let(:argv) { valid_argv }
+
+      it 'passes them correctly' do
+        expect(connection).to receive(:reboot_server).
+          with(server_id).
+          and_return('operation' => reboot_server_link)
+
+        run.call
+      end
+    end
+
+    context 'when they are invalid' do
+      before(:each) do
+        allow(command).to receive(:exit)
+        run.call
       end
 
-      it { is_expected.to include(match(/server id is required/i)) }
+      subject(:output) { stderr.string }
+
+      context 'meaning required ones are missing' do
+        let(:argv) { [] }
+
+        it { is_expected.to match(/server id is required/i) }
+      end
     end
   end
 end

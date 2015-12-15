@@ -1,4 +1,5 @@
 require 'chef/knife/clc_base'
+require 'chef/knife/clc_server_show'
 
 class Chef
   class Knife
@@ -9,81 +10,100 @@ class Chef
 
       option :clc_name,
         :long => '--name NAME',
-        :description => 'Name of the server to create'
+        :description => 'Name of the server to create',
+        :on => :head
 
       option :clc_description,
         :long => '--description DESCRIPTION',
-        :description => 'User-defined description of this server'
+        :description => 'User-defined description of this server',
+        :on => :head
 
       option :clc_group,
         :long => '--group ID',
-        :description => 'ID of the parent group'
+        :description => 'ID of the parent group',
+        :on => :head
 
       option :clc_source_server,
         :long => '--source-server ID',
-        :description => 'ID of the server to use a source. May be the ID of a template, or when cloning, an existing server ID'
+        :description => 'ID of the server to use a source. May be the ID of a template, or when cloning, an existing server ID',
+        :on => :head
 
       option :clc_managed,
         :long => '--managed',
         :boolean => true,
-        :description => 'Whether to create the server as managed or not'
+        :description => 'Whether to create the server as managed or not',
+        :on => :head
 
       option :clc_managed_backup,
         :long => '--managed-backup',
         :boolean => true,
-        :description => 'Whether to add managed backup to the server'
+        :description => 'Whether to add managed backup to the server',
+        :on => :head
 
       option :clc_primary_dns,
         :long => '--primary-dns ADDRESS',
-        :description => 'Primary DNS to set on the server'
+        :description => 'Primary DNS to set on the server',
+        :on => :head
 
       option :clc_secondary_dns,
         :long => '--secondary-dns ADDRESS',
-        :description => 'Secondary DNS to set on the server'
+        :description => 'Secondary DNS to set on the server',
+        :on => :head
 
       option :clc_network,
         :long => '--network ID',
-        :description => 'ID of the network to which to deploy the server'
+        :description => 'ID of the network to which to deploy the server',
+        :on => :head
 
       option :clc_ip,
         :long => '--ip ADDRESS',
-        :description => 'IP address to assign to the server'
+        :description => 'IP address to assign to the server',
+        :on => :head
 
-      option :clc_password,
-        :long => '--password PASSWORD',
-        :description => 'Password of administrator or root user on server'
+      option :clc_server_password,
+        :long => '--server-password PASSWORD',
+        :description => 'Password of administrator or root user on server',
+        :on => :head
 
       option :clc_source_server_password,
         :long => '--source-server-password PASSWORD',
-        :description => 'Password of the source server, used only when creating a clone from an existing server'
+        :description => 'Password of the source server, used only when creating a clone from an existing server',
+        :on => :head
 
       option :clc_cpu,
         :long => '--cpu COUNT',
-        :description => 'Number of processors to configure the server with'
+        :description => 'Number of processors to configure the server with',
+        :on => :head
 
       option :clc_cpu_autoscale_policy,
         :long => '--cpu-autoscale-policy ID',
-        :description => 'ID of the vertical CPU Autoscale policy to associate the server with'
+        :description => 'ID of the vertical CPU Autoscale policy to associate the server with',
+        :on => :head
 
       option :clc_memory,
         :long => '--memory COUNT',
-        :description => 'Number of GB of memory to configure the server with'
+        :description => 'Number of GB of memory to configure the server with',
+        :on => :head
 
       option :clc_type,
         :long => '--type TYPE',
-        :description => 'Whether to create a standard or hyperscale server'
+        :description => 'Whether to create a standard or hyperscale server',
+        :on => :head
 
       option :clc_storage_type,
         :long => '--storage-type TYPE',
-        :description => 'For standard servers, whether to use standard or premium storage'
+        :description => 'For standard servers, whether to use standard or premium storage',
+        :on => :head
 
       option :clc_anti_affinity_policy,
         :long => '--anti-affinity-policy ID',
-        :description => 'ID of the Anti-Affinity policy to associate the server with'
+        :description => 'ID of the Anti-Affinity policy to associate the server with',
+        :on => :head
 
       option :clc_custom_fields,
         :long => '--custom-field KEY=VALUE',
         :description => 'Custom field key-value pair',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_custom_fields] ||= []
           Chef::Config[:knife][:clc_custom_fields] << param
@@ -92,6 +112,7 @@ class Chef
       option :clc_disks,
         :long => '--disk PATH,SIZE,TYPE',
         :description => 'Configuration for an additional server disk',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_disks] ||= []
           Chef::Config[:knife][:clc_disks] << param
@@ -99,11 +120,13 @@ class Chef
 
       option :clc_ttl,
         :long => '--ttl DATETIME',
-        :description => 'Date/time that the server should be deleted'
+        :description => 'Date/time that the server should be deleted',
+        :on => :head
 
       option :clc_packages,
-        :long => '--package ID,KEY_1=VALUE,KEY_2=VALUE',
+        :long => '--package ID,KEY_1=VALUE[,KEY_2=VALUE]',
         :description => 'Package to run on the server after it has been built',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_packages] ||= []
           Chef::Config[:knife][:clc_packages] << param
@@ -111,15 +134,18 @@ class Chef
 
       option :clc_configuration,
         :long => '--configuration ID',
-        :description => 'Specifies the identifier for the specific configuration type of bare metal server to deploy'
+        :description => 'Specifies the identifier for the specific configuration type of bare metal server to deploy',
+        :on => :head
 
       option :clc_os_type,
         :long => '--os-type TYPE',
-        :description => 'Specifies the OS to provision with the bare metal server'
+        :description => 'Specifies the OS to provision with the bare metal server',
+        :on => :head
 
       option :clc_allowed_protocols,
-        :long => '--allow PROTOCOL:FROM-TO',
+        :long => '--allow PROTOCOL:FROM[-TO]',
         :description => 'Assigns public IP with permissions for specified protocol',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_allowed_protocols] ||= []
           Chef::Config[:knife][:clc_allowed_protocols] << param
@@ -128,6 +154,7 @@ class Chef
       option :clc_sources,
         :long => '--source CIDR',
         :description => 'The source IP address range allowed to access the new public IP address',
+        :on => :head,
         :proc => ->(param) do
           Chef::Config[:knife][:clc_sources] ||= []
           Chef::Config[:knife][:clc_sources] << param
@@ -137,9 +164,8 @@ class Chef
         :long => '--wait',
         :description => 'Wait for operation completion',
         :boolean => true,
-        :default => false
-
-      attr_accessor :data
+        :default => false,
+        :on => :head
 
       def parse_and_validate_parameters
         unless config[:clc_name]
@@ -166,7 +192,34 @@ class Chef
           errors << 'Type is required'
         end
 
-        config[:clc_custom_fields] && config[:clc_custom_fields].map! do |param|
+        custom_fields = config[:clc_custom_fields]
+        if custom_fields && custom_fields.any?
+          parse_custom_fields(custom_fields)
+        end
+
+        disks = config[:clc_disks]
+        if disks && disks.any?
+          parse_disks(disks)
+        end
+
+        packages = config[:clc_packages]
+        if packages && packages.any?
+          parse_packages(packages)
+        end
+
+        permissions = config[:clc_allowed_protocols]
+        if permissions && permissions.any?
+          parse_protocol_permissions(permissions)
+        end
+
+        sources = config[:clc_sources]
+        if sources && sources.any?
+          parse_sources(sources)
+        end
+      end
+
+      def parse_custom_fields(custom_fields)
+        custom_fields.map! do |param|
           key, value = param.split('=', 2)
 
           unless key && value
@@ -176,8 +229,10 @@ class Chef
 
           { 'id' => key, 'value' => value }
         end
+      end
 
-        config[:clc_disks] && config[:clc_disks].map! do |param|
+      def parse_disks(disks)
+        disks.map! do |param|
           path, size, type = param.split(',', 3)
 
           unless path && size && type
@@ -186,8 +241,10 @@ class Chef
 
           { 'path' => path, 'sizeGB' => size, 'type' => type }
         end
+      end
 
-        config[:clc_packages] && config[:clc_packages].map! do |param|
+      def parse_packages(packages)
+        packages.map! do |param|
           begin
             id, package_params = param.split(',', 2)
             package_params = package_params.split(',').map { |pair| Hash[*pair.split('=', 2)] }
@@ -196,8 +253,10 @@ class Chef
             errors << "Package definition #{param} is malformed"
           end
         end
+      end
 
-        config[:clc_allowed_protocols] && config[:clc_allowed_protocols].map! do |param|
+      def parse_protocol_permissions(permissions)
+        permissions.map! do |param|
           protocol, port_range = param.split(':', 2)
 
           case protocol.downcase
@@ -229,9 +288,13 @@ class Chef
           else
             errors << "Unsupported protocol for #{param}"
           end
-        end && config[:clc_allowed_protocols].flatten!
+        end
 
-        config[:clc_sources] && config[:clc_sources].map! do |cidr|
+        permissions.flatten!
+      end
+
+      def parse_sources(sources)
+        sources.map! do |cidr|
           { 'cidr' => cidr }
         end
       end
@@ -248,11 +311,11 @@ class Chef
           'secondaryDns' => config[:clc_secondary_dns],
           'networkId' => config[:clc_network],
           'ipAddress' => config[:clc_ip],
-          'password' => config[:clc_password],
+          'password' => config[:clc_server_password],
           'sourceServerPassword' => config[:clc_source_server_password],
-          'cpu' => config[:clc_cpu],
+          'cpu' => config[:clc_cpu].to_i,
           'cpuAutoscalePolicyId' => config[:clc_cpu_autoscale_policy],
-          'memoryGB' => config[:clc_memory],
+          'memoryGB' => config[:clc_memory].to_i,
           'type' => config[:clc_type],
           'storageType' => config[:clc_storage_type],
           'antiAffinityPolicyId' => config[:clc_anti_affinity_policy],
@@ -271,77 +334,55 @@ class Chef
       end
 
       def execute
+        config[:clc_wait] ? sync_create_server : async_create_server
+      end
+
+      def sync_create_server
         ui.info 'Requesting server launch...'
         links = connection.create_server(prepare_launch_params)
-
-        if config[:clc_wait]
-          connection.wait_for(links['operation']['id']) { putc '.' }
-          ui.info "\n"
-          ui.info "Server has been launched"
-          self.data = connection.follow(links['resource'])
-        else
-          ui.info 'Launch request has been sent'
-          ui.info "You can check launch operation status with 'knife clc operation show #{links['operation']['id']}'"
-        end
+        connection.wait_for(links['operation']['id']) { putc '.' }
+        ui.info "\n"
+        ui.info "Server has been launched"
 
         if config[:clc_allowed_protocols]
           ui.info 'Requesting public IP...'
-          self.data ||= connection.follow(links['resource'])
-          ip_links = connection.create_ip_address(data['id'], prepare_ip_params)
-          if config[:clc_wait]
-            connection.wait_for(ip_links['operation']['id']) { putc '.' }
-            ui.info "\n"
-            ui.info "Public IP has been assigned"
-            self.data = connection.follow(links['resource'])
-          else
-            ui.info 'Public IP request has been sent'
-            ui.info "You can check assignment operation status with 'knife clc operation show #{ip_links['operation']['id']}'"
-          end
+          server = connection.follow(links['resource'])
+          ip_links = connection.create_ip_address(server['id'], prepare_ip_params)
+          connection.wait_for(ip_links['operation']['id']) { putc '.' }
+          ui.info "\n"
+          ui.info 'Public IP has been assigned'
         end
 
-        if config[:clc_wait]
-          credentials = connection.follow(data['links'].find { |link| link['rel'] == 'credentials' })
-          ip_address_info = data['details']['ipAddresses'].find { |address| address['public'] }
-
-          self.data['publicIp'] = ip_address_info && ip_address_info['public']
-          self.data.merge!(credentials)
-
-          render_server
-        else
-          ui.info "You can check server status later with 'knife clc server show #{links['resource']['id']} --uuid'"
+        argv = [links['resource']['id'], '--uuid', '--creds']
+        if config[:clc_allowed_protocols]
+          argv << '--ports'
         end
-      end
 
-      def fields
-        %w(id name description status groupId locationId osType type storageType publicIp userName password)
-      end
-
-      def headers
-        {
-          'id' => 'ID',
-          'name' => 'Name',
-          'description' => 'Description',
-          'status' => 'Status',
-          'groupId' => 'Group',
-          'locationId' => 'Location',
-          'osType' => 'OS Type',
-          'type' => 'Type',
-          'storageType' => 'Storage Type',
-          'publicIp' => 'Public IP',
-          'userName' => 'Username',
-          'password' => 'Password'
-        }
-      end
-
-      def render_server
-        fields.each do |field|
-          header = headers.fetch(field, field.capitalize)
-          value = data.fetch(field, '-')
-
-          if value
-            puts ui.color(header, :bold) + ': ' + value.to_s
-          end
+        if (username = config[:clc_username]) && (password = config[:clc_password])
+          argv.concat(['--username', username, '--password', password])
         end
+
+        Chef::Knife::ClcServerShow.new(argv).run
+      end
+
+      def async_create_server
+        ui.info 'Requesting server launch...'
+        links = connection.create_server(prepare_launch_params)
+        ui.info 'Launch request has been sent'
+        ui.info "You can check launch operation status with 'knife clc operation show #{links['operation']['id']}'"
+
+        if config[:clc_allowed_protocols]
+          ui.info 'Requesting public IP...'
+          server = connection.follow(links['resource'])
+          ip_links = connection.create_ip_address(server['id'], prepare_ip_params)
+          ui.info 'Public IP request has been sent'
+          ui.info "You can check assignment operation status with 'knife clc operation show #{ip_links['operation']['id']}'"
+        end
+
+        argv = [links['resource']['id'], '--uuid', '--creds']
+        argv << '--ports' if config[:clc_allowed_protocols]
+
+        ui.info "You can check server status later with 'knife clc server show #{argv.join(' ')}'"
       end
     end
   end

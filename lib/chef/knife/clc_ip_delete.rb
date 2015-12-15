@@ -9,13 +9,15 @@ class Chef
 
       option :clc_server,
         :long => '--server ID',
-        :description => 'ID of the server to assign IP to'
+        :description => 'ID of the server to assign IP to',
+        :on => :head
 
       option :clc_wait,
         :long => '--wait',
         :description => 'Wait for operation completion',
         :boolean => true,
-        :default => false
+        :default => false,
+        :on => :head
 
       def parse_and_validate_parameters
         unless name_args[0]
@@ -35,6 +37,7 @@ class Chef
           connection.wait_for(links['operation']['id']) { putc '.' }
           ui.info "\n"
           ui.info 'IP address has been deleted'
+          ui.info "You can look at new network configuration with `knife clc server show #{config[:clc_server]} --ports"
         else
           ui.info 'Deletion request has been sent'
           ui.info "You can check deletion operation status with 'knife clc operation show #{links['operation']['id']}'"

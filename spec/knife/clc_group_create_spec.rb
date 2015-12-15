@@ -1,110 +1,111 @@
-require 'chef'
-require 'chef/knife'
 require 'chef/knife/clc_group_create'
 
 describe Chef::Knife::ClcGroupCreate do
-  subject(:command) { Chef::Knife::ClcGroupCreate.new }
+  let(:valid_argv) do
+    %w(
+      --name test
+      --description descr
+      --parent 975a79f94b84452ea1c920325967a33c
+      --custom-field FIELD=VALUE
+    )
+  end
+
+  it_behaves_like 'a Knife CLC command' do
+    let(:argv) { valid_argv }
+  end
+
+  include_context 'a Knife command'
+
+  let(:group) do
+    {
+      'id' => '35a35c7405d4477da5a2007c3f3cd415',
+      'name' => 'test',
+      'description' => 'descr',
+      'locationId' => 'CA1',
+      'type' => 'default',
+      'status' => 'active',
+      'groups' => [],
+      'links' => [
+        {
+          'rel' => 'parentGroup',
+          'href' => '/v2/groups/altd/975a79f94b84452ea1c920325967a33c',
+          'id' => '975a79f94b84452ea1c920325967a33c'
+        }
+      ]
+    }
+  end
 
   before(:each) do
-    Chef.reset!
-    Chef::Config.reset
-    allow(command).to receive(:config_file_settings) { {} }
-    command.configure_chef
-
-    allow(command).to receive(:exit) do |code|
-      raise 'SystemExit' unless exit.zero?
-    end
+    allow(connection).to receive(:create_group) { group }
   end
 
-  describe '#execute' do
-    subject(:execute) { -> { command.execute } }
-    let(:connection) { double }
+  context 'considering displayed information' do
 
-    before(:each) do
-      allow(command).to receive(:connection) { connection }
-      allow(connection).to receive(:create_group) { {} }
+  let(:argv) { valid_argv }
+    subject(:output) do
+      run.call
+      stdout.string
     end
 
-    let(:group) do
-      {
-        'name' => 'group name',
-        'description' => 'group description',
-        'parentGroupId' => '975a79f94b84452ea1c920325967a33c',
-        'links' => [
-          { 'rel' => 'parentGroup', 'id' => '975a79f94b84452ea1c920325967a33c' }
-        ]
-      }
+    it { is_expected.to match(/Name/i) }
+    it { is_expected.to match(/ID/i) }
+    it { is_expected.to match(/Location/i) }
+    it { is_expected.to match(/Description/i) }
+    it { is_expected.to match(/Type/i) }
+    it { is_expected.to match(/Status/i) }
+    it { is_expected.to match(/Parent/i) }
+
+    it { is_expected.to include(group['name']) }
+    it { is_expected.to include(group['id']) }
+    it { is_expected.to include(group['locationId']) }
+    it { is_expected.to include(group['description']) }
+    it { is_expected.to include(group['type']) }
+    it { is_expected.to include(group['status']) }
+    it { is_expected.to include(group['links'].first['id']) }
+  end
+
+  context 'considering command parameters' do
+    context 'when they are valid' do
+      let(:argv) { valid_argv }
+
+      it 'passes them correctly' do
+        expected_params = {
+          'name' => 'test',
+          'description' => 'descr',
+          'parentGroupId' => '975a79f94b84452ea1c920325967a33c',
+          'customFields' => [{ 'id' => 'FIELD', 'value' => 'VALUE' }]
+        }
+
+        expect(connection).to receive(:create_group).with(hash_including(expected_params))
+
+        run.call
+      end
     end
 
-    context 'considering displayed information' do
+    context 'when they are invalid' do
       before(:each) do
-        allow(connection).to receive(:create_group) { group }
+        allow(command).to receive(:exit)
+        run.call
       end
 
-      context 'considering fields that are always shown' do
-        it { is_expected.to output(/Name/i).to_stdout_from_any_process }
-        it { is_expected.to output(/ID/i).to_stdout_from_any_process }
-        it { is_expected.to output(/Location/i).to_stdout_from_any_process }
-        it { is_expected.to output(/Description/i).to_stdout_from_any_process }
-        it { is_expected.to output(/Type/i).to_stdout_from_any_process }
-        it { is_expected.to output(/Status/i).to_stdout_from_any_process }
-        it { is_expected.to output(/Parent/i).to_stdout_from_any_process }
+      subject(:output) { stderr.string }
 
-        it { is_expected.to output(/#{group['name']}/i).to_stdout_from_any_process }
-        it { is_expected.to output(/#{group['description']}/i).to_stdout_from_any_process }
-        it { is_expected.to output(/#{group['parentGroupId']}/i).to_stdout_from_any_process }
-      end
-    end
-
-    context 'considering complex parameters' do
-      subject(:config) do
-        command.parse_options(argv)
-        command.parse_and_validate_parameters
-        command.config
-      end
-
-      let(:argv) do
-        %w(
-            --name test name
-            --parent 975a79f94b84452ea1c920325967a33c
-            --custom-field FIELD=VALUE
-          )
-      end
-
-      it { is_expected.to include(:clc_custom_fields => [{ 'id' => 'FIELD', 'value' => 'VALUE' }]) }
-
-      describe 'when they are malformed' do
-        subject(:errors) do
-          command.parse_options(argv)
-          command.parse_and_validate_parameters
-          command.errors
-        end
-
+      context 'meaning some of them malformed' do
         let(:argv) do
           %w(
-              --name test name
-              --parent 975a79f94b84452ea1c920325967a33c
-              --custom-field FIELDVALUE
-            )
+            --custom-field FIELDVALUE
+          )
         end
 
-        it { is_expected.to include(/FIELDVALUE/) }
-      end
-    end
-  end
-
-  describe '#parse_and_validate_parameters' do
-    context 'considering required parameters' do
-      subject(:errors) do
-        command.parse_options(argv)
-        command.parse_and_validate_parameters
-        command.errors
+        it { is_expected.to include('FIELDVALUE') }
       end
 
-      let(:argv) { [] }
+      context 'meaning some of required ones are missing' do
+        let(:argv) { [] }
 
-      it { is_expected.to include(match(/name is required/i)) }
-      it { is_expected.to include(match(/parent group id is required/i)) }
+        it { is_expected.to match(/name is required/i) }
+        it { is_expected.to match(/parent group id is required/i) }
+      end
     end
   end
 end
