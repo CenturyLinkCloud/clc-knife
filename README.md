@@ -24,7 +24,7 @@ Or install it yourself as:
 In order to use CLC API, user must supply API username & password. This can be done in several ways:
 
 ### knife.rb
-Credentials can be specified in `knife.rb` file:
+Credentials can be specified in [knife.rb](https://docs.chef.io/config_rb_knife.html) file:
 
 ```ruby
 knife[:clc_username] = "CLC API Username"
