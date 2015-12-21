@@ -231,4 +231,4 @@ $ knife clc template list --datacenter ca1
 6. Specs and Code Style checks should pass before Code Review.
 
 ## License
-TBD
+The project is licensed under the [Apache License v2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
