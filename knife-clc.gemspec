@@ -6,21 +6,21 @@ require 'knife-clc/version'
 Gem::Specification.new do |spec|
   spec.name          = 'knife-clc'
   spec.version       = Knife::Clc::VERSION
-  spec.authors       = ['Alexander Sologub']
-  spec.email         = ['alexander.sologub@rightscale.com']
+  spec.authors       = ['Alexander Sologub', 'Alexander Kuntsevich']
+  spec.email         = ['alexander.sologub@altoros.com', 'aleksandr.kuntsevich@altoros.com']
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = 'TODO: Put your gem\'s website or public repo URL here.'
+  spec.summary       = "CenturyLink Cloud for Chef's Knife Command"
+  spec.description   = spec.summary
+  spec.homepage      = 'https://github.com/CenturyLinkCloud/clc-knife'
+  spec.license       = 'Apache-2.0'
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'faraday', '~> 0.9.2'
+  spec.add_dependency 'faraday', '~> 0.9.0'
   spec.add_dependency 'faraday_middleware', '~> 0.10.0'
-  spec.add_dependency 'hirb', '~> 0.7.3'
+  spec.add_dependency 'hirb', '~> 0.7.0'
+  spec.add_dependency 'chef', '~> 12.0'
 
   spec.add_development_dependency 'webmock', '~> 1.22.3'
   spec.add_development_dependency 'rubocop', '~> 0.34.2'
@@ -31,5 +31,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'vcr', '~> 3.0.0'
   spec.add_development_dependency 'bundler', '~> 1.9'
   spec.add_development_dependency 'rake', '~> 10.0'
-  spec.add_development_dependency 'chef', '~> 12.5.1'
 end
