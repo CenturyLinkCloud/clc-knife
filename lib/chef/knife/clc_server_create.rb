@@ -1,5 +1,6 @@
 require 'chef/knife/clc_base'
 require 'chef/knife/clc_server_show'
+require 'chef/knife/bootstrap'
 
 class Chef
   class Knife
@@ -167,6 +168,15 @@ class Chef
         :default => false,
         :on => :head
 
+      option :clc_bootstrap,
+        :long => '--bootstrap',
+        :description => 'Bootstrap launched server using standard `knife bootstrap` command',
+        :boolean => true,
+        :default => false,
+        :on => :head
+
+      self.options.merge!(Chef::Knife::Bootstrap.options)
+
       def parse_and_validate_parameters
         unless config[:clc_name]
           errors << 'Name is required'
@@ -215,6 +225,11 @@ class Chef
         sources = config[:clc_sources]
         if sources && sources.any?
           parse_sources(sources)
+        end
+
+        bootstrap = config[:clc_bootstrap]
+        if bootstrap
+          config[:clc_wait] = true
         end
       end
 
@@ -353,6 +368,10 @@ class Chef
           ui.info 'Public IP has been assigned'
         end
 
+        if config[:clc_bootstrap]
+          bootstrap(links['resource']['id'], true)
+        end
+
         argv = [links['resource']['id'], '--uuid', '--creds']
         if config[:clc_allowed_protocols]
           argv << '--ports'
@@ -383,6 +402,31 @@ class Chef
         argv << '--ports' if config[:clc_allowed_protocols]
 
         ui.info "You can check server status later with 'knife clc server show #{argv.join(' ')}'"
+      end
+
+      def bootstrap(id, uuid = false)
+        server = connection.show_server(id, uuid)
+
+        public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
+        public_ip = public_ips.first
+
+        private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
+        private_ip = private_ips.first
+
+        creds_link = server['links'].find { |link| link['rel'] == 'credentials' }
+        creds = connection.follow(creds_link) if creds_link
+
+        fqdn = public_ip || private_ip
+
+        Chef::Knife::Bootstrap.load_deps
+        command = Chef::Knife::Bootstrap.new
+
+        command.name_args = [fqdn]
+        command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
+        command.config.merge!(config.dup.delete_if { |_, v| v.nil? })
+        command.configure_chef
+
+        command.run
       end
     end
   end
