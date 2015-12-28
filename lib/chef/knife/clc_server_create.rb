@@ -229,20 +229,10 @@ class Chef
 
         bootstrap = config[:clc_bootstrap]
         if bootstrap
-          # config[:clc_wait] = true
           # Checking Chef connectivity
           Chef::Node.list
 
-          if !config[:clc_wait]
-            config[:clc_packages] ||= []
-            config[:clc_packages] << {
-              'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-              'parameters' => {
-                'Mode' => 'Ssh',
-                'Script' => async_bootstrap
-              }
-            }
-          end
+          config[:clc_wait] = true
         end
       end
 
@@ -382,7 +372,7 @@ class Chef
         end
 
         if config[:clc_bootstrap]
-          sync_bootstrap(links['resource']['id'], true)
+          sync_bootstrap(links['resource']['id'])
         end
 
         argv = [links['resource']['id'], '--uuid', '--creds']
@@ -417,8 +407,8 @@ class Chef
         ui.info "You can check server status later with 'knife clc server show #{argv.join(' ')}'"
       end
 
-      def sync_bootstrap(id, uuid = false)
-        server = connection.show_server(id, uuid)
+      def sync_bootstrap(id)
+        server = connection.show_server(id, true)
 
         public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
         public_ip = public_ips.first
@@ -440,14 +430,6 @@ class Chef
         command.configure_chef
 
         command.run
-      end
-
-      def async_bootstrap
-        Chef::Knife::Bootstrap.load_deps
-        command = Chef::Knife::Bootstrap.new
-        command.configure_chef
-
-        command.render_template
       end
     end
   end
