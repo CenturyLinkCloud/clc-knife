@@ -229,8 +229,6 @@ class Chef
         if bootstrap
           # Checking Chef connectivity
           Chef::Node.list
-
-          config[:clc_wait] = true
         end
       end
 
@@ -386,8 +384,15 @@ class Chef
       end
 
       def async_create_server
+        launch_params = prepare_launch_params
+
+        if config[:clc_bootstrap]
+          ui.info 'Bootstrap has been schedulled'
+          add_bootstrapping_params(launch_params)
+        end
+
         ui.info 'Requesting server launch...'
-        links = connection.create_server(prepare_launch_params)
+        links = connection.create_server(launch_params)
         ui.info 'Launch request has been sent'
         ui.info "You can check launch operation status with 'knife clc operation show #{links['operation']['id']}'"
 
@@ -405,8 +410,8 @@ class Chef
         ui.info "You can check server status later with 'knife clc server show #{argv.join(' ')}'"
       end
 
-      def sync_bootstrap(id)
-        server = connection.show_server(id, true)
+      def sync_bootstrap(uuid)
+        server = connection.show_server(uuid, true)
 
         command = self.class.bootstrap_command
 
@@ -419,6 +424,21 @@ class Chef
         end
 
         command.run
+      end
+
+      def add_bootstrapping_params(launch_params)
+        launch_params['packages'] ||= []
+        launch_params['packages'] << package_for_async_bootstrap
+      end
+
+      def package_for_async_bootstrap
+        {
+          'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
+          'parameters' => {
+            'Mode' => 'Ssh',
+            'Script' => self.class.bootstrap_command.render_template
+          }
+        }
       end
 
       def get_server_fqdn(server)
