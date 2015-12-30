@@ -175,8 +175,6 @@ class Chef
         :default => false,
         :on => :head
 
-      self.options.merge!(Chef::Knife::Bootstrap.options)
-
       def parse_and_validate_parameters
         unless config[:clc_name]
           errors << 'Name is required'
@@ -410,27 +408,42 @@ class Chef
       def sync_bootstrap(id)
         server = connection.show_server(id, true)
 
+        command = self.class.bootstrap_command
+
+        command.name_args = [get_server_fqdn(server)]
+
+        username, password = config.values_at(:ssh_user, :ssh_password)
+        unless username && password
+          creds = get_server_credentials(server)
+          command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
+        end
+
+        command.run
+      end
+
+      def get_server_fqdn(server)
         public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
         public_ip = public_ips.first
 
         private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
         private_ip = private_ips.first
 
+        public_ip || private_ip
+      end
+
+      def get_server_credentials(server)
         creds_link = server['links'].find { |link| link['rel'] == 'credentials' }
-        creds = connection.follow(creds_link) if creds_link
+        connection.follow(creds_link) if creds_link
+      end
 
-        fqdn = public_ip || private_ip
-
+      def self.bootstrap_command
         Chef::Knife::Bootstrap.load_deps
         command = Chef::Knife::Bootstrap.new
-
-        command.name_args = [fqdn]
-        command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
-        command.config.merge!(config.dup.delete_if { |_, v| v.nil? })
         command.configure_chef
-
-        command.run
+        command
       end
+
+      self.options.merge!(bootstrap_command.options)
     end
   end
 end
