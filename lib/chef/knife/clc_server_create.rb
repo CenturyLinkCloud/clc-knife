@@ -1,5 +1,6 @@
 require 'chef/knife/clc_base'
 require 'chef/knife/clc_server_show'
+require 'chef/knife/bootstrap'
 
 class Chef
   class Knife
@@ -167,6 +168,13 @@ class Chef
         :default => false,
         :on => :head
 
+      option :clc_bootstrap,
+        :long => '--bootstrap',
+        :description => 'Bootstrap launched server using standard `knife bootstrap` command',
+        :boolean => true,
+        :default => false,
+        :on => :head
+
       def parse_and_validate_parameters
         unless config[:clc_name]
           errors << 'Name is required'
@@ -215,6 +223,14 @@ class Chef
         sources = config[:clc_sources]
         if sources && sources.any?
           parse_sources(sources)
+        end
+
+        bootstrap = config[:clc_bootstrap]
+        if bootstrap
+          # Checking Chef connectivity
+          Chef::Node.list
+
+          config[:clc_wait] = true
         end
       end
 
@@ -353,6 +369,10 @@ class Chef
           ui.info 'Public IP has been assigned'
         end
 
+        if config[:clc_bootstrap]
+          sync_bootstrap(links['resource']['id'])
+        end
+
         argv = [links['resource']['id'], '--uuid', '--creds']
         if config[:clc_allowed_protocols]
           argv << '--ports'
@@ -384,6 +404,46 @@ class Chef
 
         ui.info "You can check server status later with 'knife clc server show #{argv.join(' ')}'"
       end
+
+      def sync_bootstrap(id)
+        server = connection.show_server(id, true)
+
+        command = self.class.bootstrap_command
+
+        command.name_args = [get_server_fqdn(server)]
+
+        username, password = config.values_at(:ssh_user, :ssh_password)
+        unless username && password
+          creds = get_server_credentials(server)
+          command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
+        end
+
+        command.run
+      end
+
+      def get_server_fqdn(server)
+        public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
+        public_ip = public_ips.first
+
+        private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
+        private_ip = private_ips.first
+
+        public_ip || private_ip
+      end
+
+      def get_server_credentials(server)
+        creds_link = server['links'].find { |link| link['rel'] == 'credentials' }
+        connection.follow(creds_link) if creds_link
+      end
+
+      def self.bootstrap_command
+        Chef::Knife::Bootstrap.load_deps
+        command = Chef::Knife::Bootstrap.new
+        command.configure_chef
+        command
+      end
+
+      self.options.merge!(bootstrap_command.options)
     end
   end
 end
