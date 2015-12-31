@@ -387,7 +387,7 @@ class Chef
         launch_params = prepare_launch_params
 
         if config[:clc_bootstrap]
-          ui.info 'Bootstrap has been schedulled'
+          ui.info 'Bootstrap has been scheduled'
           add_bootstrapping_params(launch_params)
         end
 
@@ -413,7 +413,7 @@ class Chef
       def sync_bootstrap(uuid)
         server = connection.show_server(uuid, true)
 
-        command = self.class.bootstrap_command
+        command = bootstrap_command
 
         command.name_args = [get_server_fqdn(server)]
 
@@ -436,7 +436,7 @@ class Chef
           'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
           'parameters' => {
             'Mode' => 'Ssh',
-            'Script' => self.class.bootstrap_command.render_template
+            'Script' => bootstrap_command.render_template
           }
         }
       end
@@ -456,14 +456,20 @@ class Chef
         connection.follow(creds_link) if creds_link
       end
 
-      def self.bootstrap_command
-        Chef::Knife::Bootstrap.load_deps
-        command = Chef::Knife::Bootstrap.new
+      def self.bootstrap_command_class
+        Chef::Knife::Bootstrap
+      end
+
+      def bootstrap_command
+        command_class = self.class.bootstrap_command_class
+        command_class.load_deps
+        command = command_class.new
+        command.config.merge!(config)
         command.configure_chef
         command
       end
 
-      self.options.merge!(bootstrap_command.options)
+      self.options.merge!(bootstrap_command_class.options)
     end
   end
 end
