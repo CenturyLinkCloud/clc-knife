@@ -423,7 +423,19 @@ class Chef
           command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
         end
 
-        command.run
+        tries = 2
+        begin
+          command.run
+        rescue Errno::ETIMEDOUT => e
+          tries -= 1
+
+          if tries > 0
+            ui.info 'Retrying host connection...'
+            retry
+          else
+            raise
+          end
+        end
       end
 
       def add_bootstrapping_params(launch_params)
