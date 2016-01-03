@@ -175,6 +175,13 @@ class Chef
         :default => false,
         :on => :head
 
+      option :clc_bootstrap_private,
+        :long => '--bootstrap-private',
+        :description => 'Bootstrap from private network. Requires client or SSH gateway to have an access to private network of the server',
+        :boolean => true,
+        :default => false,
+        :on => :head
+
       def parse_and_validate_parameters
         unless config[:clc_name]
           errors << 'Name is required'
@@ -227,9 +234,47 @@ class Chef
 
         bootstrap = config[:clc_bootstrap]
         if bootstrap
-          # Checking Chef connectivity
-          Chef::Node.list
+          check_chef_server_connectivity
+          check_bootstrap_connectivity_params if config[:clc_wait]
         end
+      end
+
+      def check_chef_server_connectivity
+        Chef::Node.list
+      rescue Exception => e
+        errors << 'Could not connect to Chef Server: ' + e.message
+      end
+
+      def check_bootstrap_connectivity_params
+        return if config[:clc_bootstrap_private]
+
+        if public_ip_requested?
+          errors << 'Bootstrapping requires SSH access to the server' unless ssh_access_requested?
+        else
+          errors << 'Bootstrapping requires public IP access to the server. Ignore this check with --bootstrap-private'
+        end
+      end
+
+      def public_ip_requested?
+        config[:clc_allowed_protocols] && config[:clc_allowed_protocols].any?
+      end
+
+      def ssh_access_requested?
+        ssh_port = requested_ssh_port
+
+        config[:clc_allowed_protocols].find do |permission|
+          protocol, from, to = permission.values_at('protocol', 'port', 'portTo')
+          next unless protocol == 'tcp'
+          next unless from
+
+          to ||= from
+
+          Range.new(from, to).include? ssh_port
+        end
+      end
+
+      def requested_ssh_port
+        Integer(config[:ssh_port]) || 22
       end
 
       def parse_custom_fields(custom_fields)
@@ -465,13 +510,13 @@ class Chef
       end
 
       def get_server_fqdn(server)
-        public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
-        public_ip = public_ips.first
-
-        private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
-        private_ip = private_ips.first
-
-        public_ip || private_ip
+        if config[:clc_bootstrap_private]
+          private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
+          private_ips.first
+        else
+          public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
+          public_ips.first
+        end
       end
 
       def get_server_credentials(server)
