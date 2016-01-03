@@ -413,6 +413,8 @@ class Chef
       def sync_bootstrap(uuid)
         server = connection.show_server(uuid, true)
 
+        ensure_server_powered_on(server)
+
         command = bootstrap_command
 
         command.name_args = [get_server_fqdn(server)]
@@ -424,6 +426,15 @@ class Chef
         end
 
         command.run
+      end
+
+      def ensure_server_powered_on(server)
+        return unless server['details']['powerState'] == 'stopped'
+        ui.info 'Requesting server power on...'
+        links = connection.power_on_server(server['id'])
+        connection.wait_for(links['operation']['id']) { putc '.' }
+        ui.info "\n"
+        ui.info 'Server has been powered on'
       end
 
       def add_bootstrapping_params(launch_params)
