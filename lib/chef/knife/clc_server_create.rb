@@ -274,7 +274,7 @@ class Chef
       end
 
       def requested_ssh_port
-        Integer(config[:ssh_port]) || 22
+        (config[:ssh_port] && Integer(config[:ssh_port])) || 22
       end
 
       def parse_custom_fields(custom_fields)
