@@ -90,6 +90,29 @@ describe Chef::Knife::ClcServerCreate do
     }
   end
 
+  let(:group) do
+    {
+      'id' => '975a79f94b84452ea1c920325967a33c',
+      'name' => 'test',
+      'description' => 'descr',
+      'locationId' => 'CA1',
+      'type' => 'default',
+      'status' => 'active'
+    }
+  end
+
+  let(:template) do
+    {
+      'name' => 'DEBIAN-7-64-TEMPLATE',
+      'osType' => 'debian7_64Bit',
+      'description' => 'Debian 7 | 64-bit',
+      'storageSizeGB' => 17,
+      'capabilities' => ['cpuAutoscale'],
+      'reservedDrivePaths' => ['bin'],
+      'apiOnly' => true
+    }
+  end
+
   let(:credentials) { { 'userName' => 'root', 'password' => 'p@$$w0rT' } }
 
   let(:show_command) { double }
@@ -131,6 +154,8 @@ describe Chef::Knife::ClcServerCreate do
     allow(bootstrap_command).to receive(:render_template)
     allow(Chef::Node).to receive(:list)
     allow(connection).to receive(:show_server).with(server_link['id'], true) { server }
+    allow(connection).to receive(:show_group).with(group['id']) { group }
+    allow(connection).to receive(:list_templates).with(group['locationId']) { [template] }
   end
 
   context 'considering displayed information' do

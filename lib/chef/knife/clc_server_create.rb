@@ -257,6 +257,8 @@ class Chef
       end
 
       def check_server_platform
+        return unless config[:clc_group] && config[:clc_source_server]
+
         if template = find_source_template
           windows_platform = template['osType'] =~ /windows/
         elsif server = find_source_server
@@ -266,6 +268,8 @@ class Chef
         if windows_platform
           errors << 'Bootstrapping is available for Linux platform only'
         end
+      rescue Clc::CloudExceptions::Error => e
+        errors << "Could not derive server bootstrap platform: #{e.message}"
       end
 
       def find_source_template
@@ -278,8 +282,6 @@ class Chef
 
       def find_source_server
         connection.show_server(config[:clc_source_server])
-      rescue Clc::CloudExceptions::NotFound
-        nil
       end
 
       def public_ip_requested?
