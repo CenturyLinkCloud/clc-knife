@@ -180,7 +180,7 @@ $ knife clc server create --name 'QASrv' \
 
 Command supports `--bootstrap` flag which allows to connect launched machine to your Chef Server installation. Only **Linux** platform is supported.
 
-Async bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server for execution during server launch. Note, that bootstrapping errors cancel launch operation.
+Async bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server. They will be used by Chef Client installation script during launch. Note that bootstrapping errors cancel launch operation.
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -189,10 +189,12 @@ $ knife clc server create --name 'QASrv' \
 --cpu 1 \
 --memory 1 \
 --type standard \
---bootstrap
+--bootstrap \
+--run-list recipe[chef-client] \
+--tags one,two,three
 ```
 
-Sync bootstrap is very similar to bootstrap from other Knife plugins. It requires SSH connection to the server. Note, that plugin will refuse to launch a server unless public IP with SSH access is requested. Example for custom SSH port:
+Sync bootstrap is very similar to bootstrap from other Knife plugins. It requires SSH connection to the server. Note that plugin will refuse to launch a server unless public IP with SSH access is requested. Example for custom SSH port:
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -202,11 +204,15 @@ $ knife clc server create --name 'QASrv' \
 --memory 1 \
 --type standard \
 --allow tcp:55 \
+--bootstrap \
 --ssh-port 55 \
+--run-list recipe[chef-client] \
+--tags one,two,three \
+--no-host-key-verify \
 --wait
 ```
 
-There might be several cases when bootstrap is intended to be run from the private network. If there's a machine with opened SSH access and it belongs to the same network, it can be used as a SSH gateway via `--ssh-gateway` option. Another way is to run Knife plugin inside of the network with `--bootstrap-private` flag to skip public IP checks.
+It is also possible to bootstrap a machine without public IP. If there's a machine with opened SSH access and it belongs to the same network, it can be used as a SSH gateway via `--ssh-gateway` option. Another way is to run Knife plugin inside of the network with `--bootstrap-private` flag to skip public IP checks.
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -215,8 +221,11 @@ $ knife clc server create --name 'QASrv' \
 --cpu 1 \
 --memory 1 \
 --type standard \
---bootstrap
---bootstrap-private
+--bootstrap \
+--bootstrap-private \
+--run-list recipe[chef-client] \
+--tags one,two,three \
+--no-host-key-verify \
 --wait
 ```
 
