@@ -17,8 +17,8 @@ class Chef
             :description => 'Password for CLC user account',
             :on => :head
 
-          option :clc_api_url,
-            :long => '--api-url URL',
+          option :clc_endpoint,
+            :long => '--endpoint URL',
             :description => 'Alternative CLC API URL',
             :on => :head
 
@@ -26,7 +26,7 @@ class Chef
             @connection ||= ::Clc::Client.new(
               :username => config[:clc_username],
               :password => config[:clc_password],
-              :api_url => config[:clc_api_url],
+              :endpoint => config[:clc_endpoint],
               :verbosity => config[:verbosity]
             )
           end
