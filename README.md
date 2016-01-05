@@ -6,7 +6,13 @@ This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability 
 
 ## Installation
 
-Add this line to your application's Gemfile:
+If you're using [ChefDK](https://downloads.chef.io/chef-dk/), simply install the Gem:
+
+```bash
+$ chef gem install knife-clc
+```
+
+If you're using Bundler, add this line to your application's Gemfile:
 
 ```ruby
 gem 'knife-clc'
@@ -14,11 +20,15 @@ gem 'knife-clc'
 
 And then execute:
 
-    $ bundle
+```bash
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install knife-clc
+```
+$ gem install knife-clc
+```
 
 ## Configuration
 In order to use CLC API, user must supply API username & password. This can be done in several ways:
