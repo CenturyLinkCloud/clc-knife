@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['alexander.sologub@altoros.com', 'aleksandr.kuntsevich@altoros.com']
 
   spec.summary       = "CenturyLink Cloud for Chef's Knife Command"
-  spec.description   = spec.summary
+  spec.description   = 'Plugin provides a wide range of operations to manage servers and related resources. Bootstrap support included.'
   spec.homepage      = 'https://github.com/CenturyLinkCloud/clc-knife'
   spec.license       = 'Apache-2.0'
 
