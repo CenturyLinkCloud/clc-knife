@@ -62,21 +62,25 @@ describe Chef::Knife::ClcServerList do
     end
 
     context 'which is always shown' do
-      it { is_expected.to include(server['id']) }
       it { is_expected.to include(server['name']) }
-      it { is_expected.to include(server['groupId']) }
       it { is_expected.to include(server['links'].last['id']) }
-      it { is_expected.to include(server['locationId']) }
-      it { is_expected.to include(server['osType']) }
       it { is_expected.to include(server['status']) }
 
-      it { is_expected.to match(/ID/i) }
+      # TODO AS: Displaying shortened list of fields for now
+      # it { is_expected.to include(server['id']) }
+      # it { is_expected.to include(server['groupId']) }
+      # it { is_expected.to include(server['locationId']) }
+      # it { is_expected.to include(server['osType']) }
+
       it { is_expected.to match(/Name/i) }
-      it { is_expected.to match(/Group/i) }
       it { is_expected.to match(/Public IP/i) }
-      it { is_expected.to match(/DC/i) }
-      it { is_expected.to match(/OS Type/i) }
       it { is_expected.to match(/Status/i) }
+
+      # TODO AS: Displaying shortened list of fields for now
+      # it { is_expected.to match(/ID/i) }
+      # it { is_expected.to match(/Group/i) }
+      # it { is_expected.to match(/DC/i) }
+      # it { is_expected.to match(/OS Type/i) }
     end
 
     context 'with chef nodes parameter' do

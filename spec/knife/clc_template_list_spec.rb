@@ -38,17 +38,21 @@ describe Chef::Knife::ClcTemplateList do
 
     context 'considering fields that are always shown' do
       it { is_expected.to include(template['name']) }
-      it { is_expected.to include(template['osType']) }
       it { is_expected.to include("#{template['storageSizeGB']} GB") }
       it { is_expected.to include(template['capabilities'].first) }
-      it { is_expected.to include(template['description'][0..10]) }
+
+      # TODO AS: Displaying shortened list of fields for now
+      # it { is_expected.to include(template['osType']) }
+      # it { is_expected.to include(template['description'][0..10]) }
 
       it { is_expected.to match(/Name/i) }
-      it { is_expected.to match(/OS Type/i) }
-      it { is_expected.to match(/Description/i) }
       it { is_expected.to match(/Storage/i) }
       it { is_expected.to match(/Capabilities/i) }
-      it { is_expected.to match(/API Only/i) }
+
+      # TODO AS: Displaying shortened list of fields for now
+      # it { is_expected.to match(/OS Type/i) }
+      # it { is_expected.to match(/Description/i) }
+      # it { is_expected.to match(/API Only/i) }
     end
 
     context 'considering ignored fields' do

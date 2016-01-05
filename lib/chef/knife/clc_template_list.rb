@@ -55,13 +55,15 @@ class Chef
         {
           'description' => 0.2,
           'storageSizeGB' => 7,
-          'capabilities' => 25,
+          'capabilities' => 15,
           'apiOnly' => 9
         }
       end
 
       def fields
-        %w(name osType description storageSizeGB capabilities apiOnly)
+        # TODO AS: Displaying shortened list of fields for now
+        # %w(name osType description storageSizeGB capabilities apiOnly)
+        %w(name storageSizeGB capabilities)
       end
 
       def headers

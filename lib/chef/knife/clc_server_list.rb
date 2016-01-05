@@ -79,7 +79,9 @@ class Chef
       end
 
       def fields
-        default_fields = %w(id name publicIP groupId locationId osType status)
+        # TODO AS: Displaying shortened list of fields for now
+        # default_fields = %w(id name publicIP groupId locationId osType status)
+        default_fields = %w(name publicIP status)
         config[:clc_chef_nodes] ? default_fields.insert(3, 'chefNode') : default_fields
       end
 
@@ -90,11 +92,19 @@ class Chef
         }
       end
 
+      def width_limits
+        {
+          'chefNode' => 21,
+          'status' => 15
+        }
+      end
+
       def render
         ui.info Hirb::Helpers::AutoTable.render(context[:servers],
           :headers => headers,
           :fields => fields,
           :filters => filters,
+          :max_fields => width_limits,
           :resize => false,
           :description => false)
       end
