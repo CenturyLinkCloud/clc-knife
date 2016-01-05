@@ -90,7 +90,11 @@ describe Chef::Knife::ClcServerCreate do
     }
   end
 
+  let(:credentials) { { 'userName' => 'root', 'password' => 'p@$$w0rT' } }
+
   let(:show_command) { double }
+
+  let(:bootstrap_command) { double }
 
   it_behaves_like 'a Knife CLC command' do
     let(:argv) { valid_argv }
@@ -117,6 +121,16 @@ describe Chef::Knife::ClcServerCreate do
     allow(connection).to receive(:wait_for) do |&block|
       4.times { block.call }
     end
+
+    # TODO AS: Bootstrap related stubs and specs will be extracted
+    allow(Chef::Knife::Bootstrap).to receive(:new) { bootstrap_command }
+    allow(bootstrap_command).to receive(:run)
+    allow(bootstrap_command).to receive(:config) { {} }
+    allow(bootstrap_command).to receive(:configure_chef)
+    allow(bootstrap_command).to receive(:name_args=)
+    allow(bootstrap_command).to receive(:render_template)
+    allow(Chef::Node).to receive(:list)
+    allow(connection).to receive(:show_server).with(server_link['id'], true) { server }
   end
 
   context 'considering displayed information' do
@@ -125,48 +139,92 @@ describe Chef::Knife::ClcServerCreate do
       stdout.string
     end
 
-    context 'without waiting and without public IP' do
-      let(:argv) { valid_argv }
+    context 'without bootstrapping' do
+      context 'without waiting and without public IP' do
+        let(:argv) { valid_argv }
 
-      it { is_expected.to match(/launch request has been sent/i) }
-      it { is_expected.to match(/knife clc operation show #{server_creation_link['id']}/) }
-      it { is_expected.to match(/knife clc server show #{server_link['id']} --uuid/) }
-      it { is_expected.to_not include(server['id']) }
-    end
+        it { is_expected.to match(/launch request has been sent/i) }
+        it { is_expected.to match(/knife clc operation show #{server_creation_link['id']}/) }
+        it { is_expected.to match(/knife clc server show #{server_link['id']} --uuid/) }
+        it { is_expected.to_not include(server['id']) }
+      end
 
-    context 'without waiting but with public IP' do
-      let(:argv) { valid_argv.concat(%w(--allow ssh)) }
+      context 'without waiting but with public IP' do
+        let(:argv) { valid_argv.concat(%w(--allow ssh)) }
 
-      it { is_expected.to match(/launch request has been sent/i) }
-      it { is_expected.to match(/ip request has been sent/i) }
-      it { is_expected.to match(/knife clc operation show #{server_creation_link['id']}/) }
-      it { is_expected.to match(/knife clc operation show #{ip_assignment_link['id']}/) }
-      it { is_expected.to match(/knife clc server show #{server_link['id']} --uuid/) }
-      it { is_expected.to_not include(server['id']) }
-    end
+        it { is_expected.to match(/launch request has been sent/i) }
+        it { is_expected.to match(/ip request has been sent/i) }
+        it { is_expected.to match(/knife clc operation show #{server_creation_link['id']}/) }
+        it { is_expected.to match(/knife clc operation show #{ip_assignment_link['id']}/) }
+        it { is_expected.to match(/knife clc server show #{server_link['id']} --uuid/) }
+        it { is_expected.to_not include(server['id']) }
+      end
 
-    context 'with waiting but without public IP' do
-      let(:argv) { valid_argv.concat(%w(--wait)) }
+      context 'with waiting but without public IP' do
+        let(:argv) { valid_argv.concat(%w(--wait)) }
 
-      it { is_expected.to match(/server has been launched/i) }
-      it { is_expected.to_not match(/knife clc/) }
+        it { is_expected.to match(/server has been launched/i) }
+        it { is_expected.to_not match(/knife clc/) }
 
-      it 'requests output of server show command' do
-        expect(show_command).to receive(:run)
-        output
+        it 'requests output of server show command' do
+          expect(show_command).to receive(:run)
+          output
+        end
+      end
+
+      context 'with waiting and with public IP' do
+        let(:argv) { valid_argv.concat(%w(--wait --allow ssh)) }
+
+        it { is_expected.to match(/server has been launched/i) }
+        it { is_expected.to match(/ip has been assigned/i) }
+        it { is_expected.to_not match(/knife clc/) }
+
+        it 'requests output of server show command' do
+          expect(show_command).to receive(:run)
+          output
+        end
       end
     end
 
-    context 'with waiting and with public IP' do
-      let(:argv) { valid_argv.concat(%w(--wait --allow ssh)) }
+    context 'with bootstrapping' do
+      context 'without waiting and without public IP' do
+        let(:argv) { valid_argv.concat(%w(--bootstrap)) }
 
-      it { is_expected.to match(/server has been launched/i) }
-      it { is_expected.to match(/ip has been assigned/i) }
-      it { is_expected.to_not match(/knife clc/) }
+        it { is_expected.to match(/bootstrap has been scheduled/i) }
+        it { is_expected.to match(/launch request has been sent/i) }
+        it { is_expected.to match(/knife clc operation show #{server_creation_link['id']}/) }
+        it { is_expected.to match(/knife clc server show #{server_link['id']} --uuid/) }
+        it { is_expected.to_not include(server['id']) }
+      end
 
-      it 'requests output of server show command' do
-        expect(show_command).to receive(:run)
-        output
+      context 'without waiting but with public IP' do
+        let(:argv) { valid_argv.concat(%w(--bootstrap --allow ssh)) }
+
+        it { is_expected.to match(/bootstrap has been scheduled/i) }
+        it { is_expected.to match(/launch request has been sent/i) }
+        it { is_expected.to match(/ip request has been sent/i) }
+        it { is_expected.to match(/knife clc operation show #{server_creation_link['id']}/) }
+        it { is_expected.to match(/knife clc operation show #{ip_assignment_link['id']}/) }
+        it { is_expected.to match(/knife clc server show #{server_link['id']} --uuid/) }
+        it { is_expected.to_not include(server['id']) }
+      end
+
+      context 'with waiting and with public IP' do
+        let(:argv) { valid_argv.concat(%w(--bootstrap --wait --allow ssh)) }
+
+        it { is_expected.to match(/server has been launched/i) }
+        it { is_expected.to match(/ip has been assigned/i) }
+        it { is_expected.to_not match(/knife clc/) }
+
+        it 'requests output of server show command' do
+          expect(show_command).to receive(:run)
+          output
+        end
+
+        it 'requests output of bootstrap' do
+          expect(bootstrap_command).to receive(:run)
+          output
+        end
       end
     end
   end
@@ -209,6 +267,12 @@ describe Chef::Knife::ClcServerCreate do
         it { is_expected.to include('unknownProtocol') }
         it { is_expected.to include('udp:20-21-24') }
         it { is_expected.to include('tcp') }
+      end
+
+      context 'meaning that sync bootstrap is requested but there is no public IP' do
+        let(:argv) { %w(--bootstrap --wait) }
+
+        it { is_expected.to include('requires public IP access to the server') }
       end
     end
 
