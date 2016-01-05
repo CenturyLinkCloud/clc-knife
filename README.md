@@ -154,7 +154,7 @@ $ knife clc operation show ca1-43089 --wait
 ```
 
 ### `knife clc server create`
-**Asynchronous**. Launches a server using specified parameters. It is recommended to allow SSH/RDP access to the server if user plans to use it later with `knife bootstrap`.
+**Asynchronous**. Launches a server using specified parameters. It is recommended to allow SSH/RDP access to the server if user plans to use it from external network later.
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -165,6 +165,48 @@ $ knife clc server create --name 'QASrv' \
 --type standard \
 --allow icmp \
 --allow ssh \
+--wait
+```
+
+Command supports `--bootstrap` flag which allows to connect launched machine to your Chef Server installation. Only **Linux** platform is supported.
+
+Async bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server for execution during server launch. Note, that bootstrapping errors cancel launch operation.
+
+```bash
+$ knife clc server create --name 'QASrv' \
+--group 675b79g94b84122ea1c920111967a33c \
+--source-server DEBIAN-7-64-TEMPLATE \
+--cpu 1 \
+--memory 1 \
+--type standard \
+--bootstrap
+```
+
+Sync bootstrap is very similar to bootstrap from other Knife plugins. It requires SSH connection to the server. Note, that plugin will refuse to launch a server unless public IP with SSH access is requested. Example for custom SSH port:
+
+```bash
+$ knife clc server create --name 'QASrv' \
+--group 675b79g94b84122ea1c920111967a33c \
+--source-server DEBIAN-7-64-TEMPLATE \
+--cpu 1 \
+--memory 1 \
+--type standard \
+--allow tcp:55 \
+--ssh-port 55 \
+--wait
+```
+
+There might be several cases when bootstrap is intended to be run from the private network. If there's a machine with opened SSH access and it belongs to the same network, it can be used as a SSH gateway via `--ssh-gateway` option. Another way is to run Knife plugin inside of the network with `--bootstrap-private` flag to skip public IP checks.
+
+```bash
+$ knife clc server create --name 'QASrv' \
+--group 675b79g94b84122ea1c920111967a33c \
+--source-server DEBIAN-7-64-TEMPLATE \
+--cpu 1 \
+--memory 1 \
+--type standard \
+--bootstrap
+--bootstrap-private
 --wait
 ```
 

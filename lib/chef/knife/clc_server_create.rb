@@ -246,7 +246,7 @@ class Chef
       end
 
       def check_bootstrap_connectivity_params
-        return if config[:clc_bootstrap_private]
+        return if indirect_bootstrap?
 
         if public_ip_requested?
           errors << 'Bootstrapping requires SSH access to the server' unless ssh_access_requested?
@@ -510,13 +510,17 @@ class Chef
       end
 
       def get_server_fqdn(server)
-        if config[:clc_bootstrap_private]
+        if indirect_bootstrap?
           private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
           private_ips.first
         else
           public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
           public_ips.first
         end
+      end
+
+      def indirect_bootstrap?
+        config[:clc_bootstrap_private] || config[:ssh_gateway]
       end
 
       def get_server_credentials(server)
