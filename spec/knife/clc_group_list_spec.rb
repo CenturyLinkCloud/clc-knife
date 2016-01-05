@@ -102,17 +102,21 @@ describe Chef::Knife::ClcGroupList do
 
       it { is_expected.to match(/ID/i) }
       it { is_expected.to match(/Name/i) }
-      it { is_expected.to match(/Description/i) }
       it { is_expected.to match(/Type/i) }
-      it { is_expected.to match(/Status/i) }
-      it { is_expected.to match(/Parent/i) }
+
+      # TODO AS: Displaying shortened list of fields for now
+      # it { is_expected.to match(/Description/i) }
+      # it { is_expected.to match(/Status/i) }
+      # it { is_expected.to match(/Parent/i) }
 
       it { is_expected.to include(child_group['id']) }
       it { is_expected.to include(child_group['name']) }
-      it { is_expected.to include(child_group['description'][0..10]) }
       it { is_expected.to include(child_group['type']) }
-      it { is_expected.to include(child_group['status']) }
-      it { is_expected.to include(child_group['links'].first['id']) }
+
+      # TODO AS: Displaying shortened list of fields for now
+      # it { is_expected.to include(child_group['description'][0..10]) }
+      # it { is_expected.to include(child_group['status']) }
+      # it { is_expected.to include(child_group['links'].first['id']) }
     end
 
     context 'for tree view' do

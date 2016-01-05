@@ -54,7 +54,9 @@ class Chef
       end
 
       def fields
-        %w(name id parentId description serversCount type status)
+        # TODO AS: Displaying shortened list of fields for now
+        # %w(name id parentId description serversCount type status)
+        %w(name id serversCount type)
       end
 
       def headers
