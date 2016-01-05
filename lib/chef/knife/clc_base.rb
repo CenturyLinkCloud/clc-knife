@@ -17,11 +17,17 @@ class Chef
             :description => 'Password for CLC user account',
             :on => :head
 
+          option :clc_api_url,
+            :long => '--api-url URL',
+            :description => 'Alternative CLC API URL',
+            :on => :head
+
           def connection
             @connection ||= ::Clc::Client.new(
               :username => config[:clc_username],
               :password => config[:clc_password],
-              :verbosity => Chef::Config[:verbosity]
+              :api_url => config[:clc_api_url],
+              :verbosity => config[:verbosity]
             )
           end
 
