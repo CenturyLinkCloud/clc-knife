@@ -235,6 +235,7 @@ class Chef
         bootstrap = config[:clc_bootstrap]
         if bootstrap
           check_chef_server_connectivity
+          check_server_platform
           check_bootstrap_connectivity_params if config[:clc_wait]
         end
       end
@@ -253,6 +254,32 @@ class Chef
         else
           errors << 'Bootstrapping requires public IP access to the server. Ignore this check with --bootstrap-private'
         end
+      end
+
+      def check_server_platform
+        if template = find_source_template
+          windows_platform = template['osType'] =~ /windows/
+        elsif server = find_source_server
+          windows_platform = server['os'] =~ /windows/
+        end
+
+        if windows_platform
+          errors << 'Bootstrapping is available for Linux platform only'
+        end
+      end
+
+      def find_source_template
+        group = connection.show_group(config[:clc_group])
+        datacenter_id = group['locationId']
+        connection.list_templates(datacenter_id).find do |template|
+          template['name'] == config[:clc_source_server]
+        end
+      end
+
+      def find_source_server
+        connection.show_server(config[:clc_source_server])
+      rescue Clc::CloudExceptions::NotFound
+        nil
       end
 
       def public_ip_requested?
