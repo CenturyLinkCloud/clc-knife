@@ -235,6 +235,7 @@ class Chef
         bootstrap = config[:clc_bootstrap]
         if bootstrap
           check_chef_server_connectivity
+          check_server_platform
           check_bootstrap_connectivity_params if config[:clc_wait]
         end
       end
@@ -246,13 +247,41 @@ class Chef
       end
 
       def check_bootstrap_connectivity_params
-        return if config[:clc_bootstrap_private]
+        return if indirect_bootstrap?
 
         if public_ip_requested?
           errors << 'Bootstrapping requires SSH access to the server' unless ssh_access_requested?
         else
           errors << 'Bootstrapping requires public IP access to the server. Ignore this check with --bootstrap-private'
         end
+      end
+
+      def check_server_platform
+        return unless config[:clc_group] && config[:clc_source_server]
+
+        if template = find_source_template
+          windows_platform = template['osType'] =~ /windows/
+        elsif server = find_source_server
+          windows_platform = server['os'] =~ /windows/
+        end
+
+        if windows_platform
+          errors << 'Bootstrapping is available for Linux platform only'
+        end
+      rescue Clc::CloudExceptions::Error => e
+        errors << "Could not derive server bootstrap platform: #{e.message}"
+      end
+
+      def find_source_template
+        group = connection.show_group(config[:clc_group])
+        datacenter_id = group['locationId']
+        connection.list_templates(datacenter_id).find do |template|
+          template['name'] == config[:clc_source_server]
+        end
+      end
+
+      def find_source_server
+        connection.show_server(config[:clc_source_server])
       end
 
       def public_ip_requested?
@@ -510,13 +539,17 @@ class Chef
       end
 
       def get_server_fqdn(server)
-        if config[:clc_bootstrap_private]
+        if indirect_bootstrap?
           private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
           private_ips.first
         else
           public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
           public_ips.first
         end
+      end
+
+      def indirect_bootstrap?
+        config[:clc_bootstrap_private] || config[:ssh_gateway]
       end
 
       def get_server_credentials(server)

@@ -8,7 +8,7 @@ module Clc
     attr_reader :connection
 
     def initialize(params = {})
-      @connection = Faraday.new(:url => 'https://api.ctl.io') do |builder|
+      @connection = Faraday.new(:url => params[:endpoint] || 'https://api.ctl.io') do |builder|
         builder.use Clc::CloudExceptions::Handler
         builder.request :json
         builder.response :json

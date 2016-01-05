@@ -32,7 +32,7 @@ module Clc
       private
 
       def error_message(response)
-        "#{response[:status]} #{response[:body]}"
+        "#{response[:status]} #{response[:url]} #{response[:body]}"
       end
     end
   end
