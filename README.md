@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.com/CenturyLinkCloud/clc-knife.svg?branch=master&token=LhLVx9NS1UaceLVeEbZK)](https://travis-ci.com/CenturyLinkCloud/clc-knife)
+[![Build Status](https://travis-ci.org/CenturyLinkCloud/clc-knife.svg?branch=master)](https://travis-ci.org/CenturyLinkCloud/clc-knife)
+[![Gem Version](https://badge.fury.io/rb/knife-clc.svg)](https://badge.fury.io/rb/knife-clc)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 # Knife CLC
 
