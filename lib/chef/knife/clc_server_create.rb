@@ -1,6 +1,7 @@
 require 'chef/knife/clc_base'
 require 'chef/knife/clc_server_show'
 require 'chef/knife/bootstrap'
+require 'chef/node'
 
 class Chef
   class Knife
@@ -251,7 +252,11 @@ class Chef
       end
 
       def check_bootstrap_node_connectivity_params
-        context = bootstrap_command.bootstrap_context
+        command = bootstrap_command
+        # Chef 12.0 does not have bootstrap context accessor and validates key by itself
+        return unless command.respond_to?(:bootstrap_context)
+
+        context = command.bootstrap_context
         unless context.validation_key
           errors << "Validatorless async bootstrap is not supported. Validation key #{Chef::Config[:validation_key]} not found"
         end
@@ -472,8 +477,8 @@ class Chef
         launch_params = prepare_launch_params
 
         if config[:clc_bootstrap]
-          ui.info 'Bootstrap has been scheduled'
           add_bootstrapping_params(launch_params)
+          ui.info 'Bootstrap has been scheduled'
         end
 
         ui.info 'Requesting server launch...'
