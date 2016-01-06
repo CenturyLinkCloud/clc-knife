@@ -499,18 +499,21 @@ class Chef
           command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
         end
 
-        tries = 2
-        begin
-          command.run
-        rescue Errno::ETIMEDOUT => e
-          tries -= 1
+        command.config[:chef_node_name] ||= server['name']
 
-          if tries > 0
-            ui.info 'Retrying host connection...'
-            retry
-          else
-            raise
-          end
+        retry_on_timeouts { command.run }
+      end
+
+      def retry_on_timeouts(tries = 2, &block)
+        yield
+      rescue Errno::ETIMEDOUT => e
+        tries -= 1
+
+        if tries > 0
+          ui.info 'Retrying host connection...'
+          retry
+        else
+          raise
         end
       end
 
