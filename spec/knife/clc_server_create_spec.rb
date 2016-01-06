@@ -119,6 +119,8 @@ describe Chef::Knife::ClcServerCreate do
 
   let(:bootstrap_command) { double }
 
+  let(:bootstrap_context) { double }
+
   it_behaves_like 'a Knife CLC command' do
     let(:argv) { valid_argv }
   end
@@ -152,6 +154,8 @@ describe Chef::Knife::ClcServerCreate do
     allow(bootstrap_command).to receive(:configure_chef)
     allow(bootstrap_command).to receive(:name_args=)
     allow(bootstrap_command).to receive(:render_template)
+    allow(bootstrap_command).to receive(:bootstrap_context) { bootstrap_context }
+    allow(bootstrap_context).to receive(:validation_key) { 'KeyContents' }
     allow(Chef::Node).to receive(:list)
     allow(connection).to receive(:show_server).with(server_link['id'], true) { server }
     allow(connection).to receive(:show_group).with(group['id']) { group }

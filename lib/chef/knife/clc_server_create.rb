@@ -236,7 +236,11 @@ class Chef
         if bootstrap
           check_chef_server_connectivity
           check_server_platform
-          check_bootstrap_connectivity_params if config[:clc_wait]
+          if config[:clc_wait]
+            check_bootstrap_connectivity_params
+          else
+            check_bootstrap_node_connectivity_params
+          end
         end
       end
 
@@ -244,6 +248,13 @@ class Chef
         Chef::Node.list
       rescue Exception => e
         errors << 'Could not connect to Chef Server: ' + e.message
+      end
+
+      def check_bootstrap_node_connectivity_params
+        context = bootstrap_command.bootstrap_context
+        unless context.validation_key
+          errors << "Validatorless async bootstrap is not supported. Validation key #{Chef::Config[:validation_key]} not found"
+        end
       end
 
       def check_bootstrap_connectivity_params
