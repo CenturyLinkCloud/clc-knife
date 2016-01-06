@@ -236,7 +236,11 @@ class Chef
         if bootstrap
           check_chef_server_connectivity
           check_server_platform
-          check_bootstrap_connectivity_params if config[:clc_wait]
+          if config[:clc_wait]
+            check_bootstrap_connectivity_params
+          else
+            check_bootstrap_node_connectivity_params
+          end
         end
       end
 
@@ -244,6 +248,13 @@ class Chef
         Chef::Node.list
       rescue Exception => e
         errors << 'Could not connect to Chef Server: ' + e.message
+      end
+
+      def check_bootstrap_node_connectivity_params
+        context = bootstrap_command.bootstrap_context
+        unless context.validation_key
+          errors << "Validatorless async bootstrap is not supported. Validation key #{Chef::Config[:validation_key]} not found"
+        end
       end
 
       def check_bootstrap_connectivity_params
@@ -499,18 +510,21 @@ class Chef
           command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
         end
 
-        tries = 2
-        begin
-          command.run
-        rescue Errno::ETIMEDOUT => e
-          tries -= 1
+        command.config[:chef_node_name] ||= server['name']
 
-          if tries > 0
-            ui.info 'Retrying host connection...'
-            retry
-          else
-            raise
-          end
+        retry_on_timeouts { command.run }
+      end
+
+      def retry_on_timeouts(tries = 2, &block)
+        yield
+      rescue Errno::ETIMEDOUT => e
+        tries -= 1
+
+        if tries > 0
+          ui.info 'Retrying host connection...'
+          retry
+        else
+          raise
         end
       end
 
