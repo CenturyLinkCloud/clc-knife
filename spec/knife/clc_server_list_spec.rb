@@ -85,7 +85,7 @@ describe Chef::Knife::ClcServerList do
 
     context 'with chef nodes parameter' do
       let(:argv) { valid_argv.concat(%w(--chef-nodes)) }
-      let(:node) { double(:name => server['name'] + '.local', :machinename => server['name']) }
+      let(:node) { double(:name => server['name'] + '.local', :[] => server['name']) }
 
       before(:each) do
         allow(Chef::Node).to receive(:list) { { node.name => node } }

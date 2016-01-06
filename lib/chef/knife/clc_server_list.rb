@@ -47,7 +47,7 @@ class Chef
       def merge_chef_nodes!(servers)
         nodes = Chef::Node.list(true).values
         servers.map! do |server|
-          existing_node = nodes.find { |node| node.machinename == server['name'] }
+          existing_node = nodes.find { |node| node['machinename'] == server['name'] }
           server['chefNode'] = existing_node.name if existing_node
           server
         end
