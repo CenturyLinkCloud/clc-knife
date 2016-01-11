@@ -4,13 +4,13 @@
 
 # Knife CLC
 
-This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability to manage servers and query for additional resources like datacenters, templates and groups.
+This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability to manage servers and query for additional resources like data centers, templates and groups.
 
 ## Requirements
 
 ## Installation
 
-There are three ways to install Chef Knife plugin on your CenturyLink Cloud platform.
+There are three ways to install the Chef Knife plugin on your CenturyLink Cloud platform.
 
 ### If you're using [ChefDK](https://downloads.chef.io/chef-dk/):
 
@@ -47,7 +47,7 @@ $ gem install knife-clc
 
 ## Configuration
 
-In order to use the CLC API, a user must supply the API username & password. This can be done in several ways.
+In order to use the CLC API, which runs the Chef Knife plugin, a user must supply an API username & password. This can be done in several ways.
 
 ### knife.rb
 Credentials can be specified in the [knife.rb](https://docs.chef.io/config_rb_knife.html) file:
@@ -82,7 +82,9 @@ $ knife clc datacenter list \
 ```
 
 ## Advanced Configuration
-In order to speed up your workflow, you can specify some defaults for every command option in `knife.rb`. Since `knife.rb` is basically a Ruby file, we use `snake_case` notation. Also, we prefix CLC options with `clc_`. For example, `--source-server` turns into `clc_source_server`.
+In order to speed up your workflow, you can specify some defaults for every command option in `knife.rb`.
+
+**Note:** Since `knife.rb` is basically a Ruby file, we use `snake_case` notation. Also, we prefix CLC options with `clc_`. For example, `--source-server` turns into `clc_source_server`.
 
 ```
 ruby
@@ -152,7 +154,7 @@ $ knife clc group create --name 'Custom Group' \
 ```
 
 ### `knife clc group list`
-**Scoped by datacenter**. Outputs a list of datacenter groups. By default, it reflects a logical group structure as a tree. Supports `--view` option with the values `table` and `tree`.
+**Scoped by datacenter**. Outputs a list of datacenter groups. By default, it reflects a logical group structure as a tree. Supports the `--view` option with the values `table` and `tree`.
 
 ```
 $ knife clc group list --datacenter ca1 --view table
