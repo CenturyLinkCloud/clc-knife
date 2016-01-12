@@ -3,11 +3,9 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 # Knife CLC
-
 This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability to manage servers and query for additional resources like data centers, templates and groups.
 
 ## Installation
-
 There are three ways to install the Chef Knife plugin on your CenturyLink Cloud platform.
 
 * If you're using [ChefDK](https://downloads.chef.io/chef-dk/), simply install the Gem:
@@ -37,7 +35,6 @@ $ gem install knife-clc
 ```
 
 ## Configuration
-
 In order to use the CLC API, which runs the Chef Knife plugin, a user must supply an API username & password. This can be done in several ways.
 
 ### knife.rb
@@ -311,7 +308,6 @@ $ knife clc template list --datacenter ca1
 ```
 
 ## Contributing
-
 1. Fork it [https://github.com/CenturyLinkCloud/clc-knife/fork](https://github.com/CenturyLinkCloud/clc-knife/fork)
 2. Create your feature branch `git checkout -b my-new-feature`
 3. Commit your changes `git commit -am 'Add some feature'`
