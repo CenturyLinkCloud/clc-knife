@@ -8,13 +8,13 @@ This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability 
 ## Installation
 There are three ways to install the Chef Knife plugin on your CenturyLink Cloud platform.
 
-* If you're using [ChefDK](https://downloads.chef.io/chef-dk/), simply install the Gem:
+If you're using [ChefDK](https://downloads.chef.io/chef-dk/), simply install the Gem:
 
 ```bash
 $ chef gem install knife-clc
 ```
 
-* If you're using Bundler:
+If you're using Bundler:
 
 Add this line to your application's Gemfile:
 
@@ -28,14 +28,14 @@ And then, execute:
 $ bundle
 ```
 
-* If you're installing it yourself:
+If you're installing it yourself:
 
 ```
 $ gem install knife-clc
 ```
 
 ## Configuration
-In order to use the CLC API, which runs the Chef Knife plugin, a user must supply an API username & password. This can be done in several ways.
+In order to use the CLC API (which Chef Knife uses for configuration) a user must supply an API username & password. This can be done in several ways.
 
 ### knife.rb
 Credentials can be specified in the [knife.rb](https://docs.chef.io/config_rb_knife.html) file:
