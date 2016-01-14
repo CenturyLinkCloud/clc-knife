@@ -57,6 +57,14 @@ class Chef
           def execute
           end
 
+          def os_windows?
+            (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+          end
+
+          def os_linux?
+            !os_windows?
+          end
+
           def errors
             @errors ||= []
           end
