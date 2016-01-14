@@ -3,10 +3,10 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 # Knife CLC
-
-This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability to manage servers and query for additional resources like datacenters, templates and groups.
+This is the Chef Knife plugin for CenturyLink Cloud. It gives Knife the ability to manage servers and query for additional resources like data centers, templates and groups.
 
 ## Installation
+There are three ways to install the Chef Knife plugin on your CenturyLink Cloud platform.
 
 If you're using [ChefDK](https://downloads.chef.io/chef-dk/), simply install the Gem:
 
@@ -14,58 +14,62 @@ If you're using [ChefDK](https://downloads.chef.io/chef-dk/), simply install the
 $ chef gem install knife-clc
 ```
 
-If you're using Bundler, add this line to your application's Gemfile:
+If you're using Bundler:
+
+Add this line to your application's Gemfile:
 
 ```ruby
 gem 'knife-clc'
 ```
 
-And then execute:
+And then, execute:
 
 ```bash
 $ bundle
 ```
 
-Or install it yourself as:
+If you're installing it yourself:
 
 ```
 $ gem install knife-clc
 ```
 
 ## Configuration
-In order to use CLC API, user must supply API username & password. This can be done in several ways:
+In order to use the CLC API (which Chef Knife uses for configuration) a user must supply an API username & password. This can be done in several ways.
 
 ### knife.rb
-Credentials can be specified in [knife.rb](https://docs.chef.io/config_rb_knife.html) file:
+Credentials can be specified in the [knife.rb](https://docs.chef.io/config_rb_knife.html) file:
 
 ```ruby
 knife[:clc_username] = "CLC API Username"
 knife[:clc_password] = "CLC API Password"
 ```
 
-Note: If your `knife.rb` file will be checked into a source control management system, or will be otherwise accessible by others, you may want to use one of the other configuration methods to avoid exposing your credentials.
+**Note:** If your `knife.rb` file will be checked into a source control management system, or will be otherwise accessible by others, you may want to use one of the other configuration methods to avoid exposing your credentials.
 
 ### ENV & knife.rb
-It is also possible to specify credentials as environment variables. Here's an example:
+It is also possible to specify credentials as environment (ENV) variables. Here's an example:
 
 ```ruby
 knife[:clc_username] = ENV['CLC_USERNAME']
 knife[:clc_password] = ENV['CLC_PASSWORD']
 ```
 
-Note that since most CLC tools use the same set of ENV variables, plugin would read `CLC_USERNAME` and `CLC_PASSWORD` variables automatically if no other options were specified in `knife.rb`.
+**Note:** Since most CLC tools use the same set of ENV variables, the plugin would read the `CLC_USERNAME` and `CLC_PASSWORD` variables automatically if no other options were specified in `knife.rb`.
 
 ### CLI Arguments
-If you prefer to specify credentials on per-command basis, you can do it with CLI arguments:
+If you prefer to specify credentials on a per-command basis, you can do it with CLI arguments:
 
 ```bash
 $ knife clc datacenter list \
---username 'api_username' \ 
+--username 'api_username' \
 --password 'api_password'
 ```
 
 ## Advanced Configuration
-In order to speed up your workflow, you can specify some defaults for every command option in `knife.rb`. Since `knife.rb` is basically a Ruby file, we use `snake_case` notation there. Also, we prefix CLC options with `clc_`. It means that `--source-server` turns into `clc_source_server`:
+In order to speed up your workflow, you can specify some defaults for every command option in `knife.rb`.
+
+**Note:** Since `knife.rb` is basically a Ruby file, we use `snake_case` notation. Also, we prefix CLC options with `clc_`. For example, `--source-server` turns into `clc_source_server`.
 
 ```ruby
 knife[:clc_name] = 'QAEnv'
@@ -75,11 +79,11 @@ knife[:clc_source_server] = 'DEBIAN-7-64-TEMPLATE'
 knife[:clc_cpu] = 2
 knife[:clc_memory] = 2
 ```
-Options like `--disk`, `--custom-field`, `--package` can be specified several times. In configuration file they will look like an Array with plural config option name:
+Options like `--disk`, `--custom-field`, `--package` can be specified several times. In the configuration file they will look like an Array with a plural config option name. For example:
 
 ```ruby
 knife[:clc_custom_fields] = [
-  'KEY=VALUE', 
+  'KEY=VALUE',
   'ANOTHER=VALUE'
 ]
 
@@ -89,7 +93,9 @@ knife[:clc_disks] = [
 ```
 
 ## Supported Commands
-This plugin provides the following Knife subcommands. Specific command options can be found by invoking the subcommand with a `--help` flag:
+This plugin provides the following Knife subcommands.
+
+Specific command options can be found by invoking the subcommand with a `--help` flag.
 
 * [knife clc datacenter list (options)](#knife-clc-datacenter-list)
 * [knife clc group create (options)](#knife-clc-group-create)
@@ -106,21 +112,21 @@ This plugin provides the following Knife subcommands. Specific command options c
 * [knife clc server show ID (options)](#knife-clc-server-show)
 * [knife clc template list (options)](#knife-clc-template-list)
 
-Note that some commands provide an access to long-running cloud operations. These commands are **asynchronous** by default (they don't wait for completion and return some output immediately). All of them support `--wait` option which makes command to wait until operation is completed or failed.
+**Note:** Some commands provide access to long-running cloud operations. These commands are **asynchronous**(async) by default (they don't wait for the operation to complete before continuing their work and they don't return an output immediately). All of them support the `--wait` option, which makes the command pause until the operation either completes or fails.
 
-Several types of resources are **scoped by datacenter** they reside in. Commands querying for these resources support `--datacenter ID` option. Some of them support `--all` option to return all resources from all datacenters (which is much slower).
+Several types of resources are scoped by the datacenter they reside in. Commands querying for these resources support the `--datacenter ID` option, which returns resources for a specific data center. Some of the commands support the `--all` option, which returns all resources from all data centers (this command is much slower).
 
-Also, resources like ip addresses are **scoped by server** they belong to. Related commands require `--server ID` option.
+Also, resources like IP addresses are scoped by the server they belong to. The related commands require the `--server ID` option.
 
 ### `knife clc datacenter list`
-Outputs list of all available CLC datacenters.
+Outputs a list of all available CLC data centers.
 
 ```bash
 $ knife clc datacenter list
 ```
 
 ### `knife clc group create`
-Creates a child group for specified parent. Unlike other modification operations, that command is synchronous and does not support `--wait` flag.
+Creates a child group for a specified parent. Unlike other modification operations, this command is synchronous and does not support the `--wait` flag.
 
 ```bash
 $ knife clc group create --name 'Custom Group' \
@@ -129,14 +135,14 @@ $ knife clc group create --name 'Custom Group' \
 ```
 
 ### `knife clc group list`
-**Scoped by datacenter**. Outputs list of datacenter groups. By default, reflects logical group structure as a tree. Supports `--view` option with values `table` and `tree`.
+**Scoped by datacenter**. Outputs a list of datacenter groups. By default, it reflects a logical group structure as a tree. Supports the `--view` option with the values `table` and `tree`.
 
 ```
 $ knife clc group list --datacenter ca1 --view table
 ```
 
 ### `knife clc ip create`
-**Asynchronous**. **Scoped by server**. Assigns a public IP to specified server. Applies passes protocol and source restrictions. While CLC API supports TCP, UDP and ICMP permissions only, this command provides several useful aliases to most ofthen used protocols: `ssh`, `sftp`, `ftp`, `http`, `https`, `ftp`, `ftps`. Same options can be provided during server creation.
+**Asynchronous**. **Scoped by server**. Assigns a public IP to a specified server. Applies the passes protocol and source restrictions. While the CLC API supports TCP, UDP and ICMP permissions only, this command provides several useful aliases to the most frequently used protocols: `ssh`, `sftp`, `ftp`, `http`, `https`, `ftp`, and `ftps`. These same options can be provided during server creation.
 
 ```bash
 $ knife clc ip create --server ca1altdqasrv01 \
@@ -152,21 +158,21 @@ $ knife clc ip create --server ca1altdqasrv01 \
 ```
 
 ### `knife clc ip delete`
-**Asynchronous**. **Scoped by server**. Deletes previously assigned public IP of the server.
+**Asynchronous**. **Scoped by server**. Deletes a previously assigned public IP of a server.
 
 ```bash
 $ knife clc ip delete 65.39.184.23 --server ca1altdqasrv01 --wait
 ```
 
 ### `knife clc operation show`
-**Asynchronous**. Outputs current operation status. User can use `--wait` flag to wait for operation completion. Operation IDs are usually printed by other asynchronous commands when they are executed without `--wait` option.
+**Asynchronous**. Outputs the current operation status. User can use the `--wait` flag to wait for operation completion. Operation IDs are usually printed by other async commands when they are executed without the `--wait` option.
 
 ```bash
 $ knife clc operation show ca1-43089 --wait
 ```
 
 ### `knife clc server create`
-**Asynchronous**. Launches a server using specified parameters. It is recommended to allow SSH/RDP access to the server if user plans to use it from external network later.
+**Asynchronous**. Launches a server using specified parameters. It is recommended to allow SSH/RDP access to the server if the user plans to use it from an external network later.
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -180,9 +186,12 @@ $ knife clc server create --name 'QASrv' \
 --wait
 ```
 
-Command supports `--bootstrap` flag which allows to connect launched machine to your Chef Server installation. Only **Linux** platform is supported.
+#### Bootstrap flag
+This command supports the `--bootstrap` flag, which allows the launched machine to connect to your Chef Server installation. Only the **Linux** platform is supported.
 
-Async bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server. They will be used by Chef Client installation script during launch. Note that bootstrapping errors cancel launch operation.
+The async bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server. They will be used by the Chef Client installation script during launch.
+
+**Note:** Bootstrapping errors will cancel a launch operation.
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -196,7 +205,11 @@ $ knife clc server create --name 'QASrv' \
 --tags one,two,three
 ```
 
-Sync bootstrap is very similar to bootstrap from other Knife plugins. It requires SSH connection to the server. Note that plugin will refuse to launch a server unless public IP with SSH access is requested. Example for custom SSH port:
+The synchronous(sync) bootstrap variant is very similar to the bootstrap used in other Knife plugins. It requires an SSH connection to the server.
+
+**Note:** The plugin will refuse to launch a server unless a public IP with SSH access is requested.
+
+Example for custom SSH port:
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -214,7 +227,7 @@ $ knife clc server create --name 'QASrv' \
 --wait
 ```
 
-It is also possible to bootstrap a machine without public IP. If there's a machine with opened SSH access and it belongs to the same network, it can be used as a SSH gateway via `--ssh-gateway` option. Another way is to run Knife plugin inside of the network with `--bootstrap-private` flag to skip public IP checks.
+It is also possible to bootstrap a machine without using a public IP address. A machine with open SSH access that belongs to the same network can be used as an SSH gateway via the `--ssh-gateway` option. Users can also  run the Knife plugin inside of the network with the `--bootstrap-private` flag to bypass public IP checks.
 
 ```bash
 $ knife clc server create --name 'QASrv' \
@@ -232,60 +245,69 @@ $ knife clc server create --name 'QASrv' \
 ```
 
 ### `knife clc server delete`
-**Asynchronous**. Deletes an existing server by its ID. Note that Chef Server objects (if there are any) are left intact.
+**Asynchronous**. Deletes an existing server by its ID. Note that all Chef Server objects (if there are any) are left intact after the deletion.
 
 ```bash
 $ knife clc server delete ca1altdqasrv01 --wait
 ```
 
 ### `knife clc server list`
-**Scoped by datacenter**. Outputs a list of all servers in specified datacenter. Can be used with `--chef-nodes` option to add `Chef Node` column. Servers managed by Chef Server will have their node names there. Note that Chef API credentials are required for this to work. Supports `--all` option.
+**Scoped by datacenter**. Outputs a list of all servers in a specified datacenter. This also supports `--all` option (which returns a list of servers in all datacenters).
+
+Can be used with the  `--chef-nodes` option to add a `Chef Node` column. The node names of servers managed by Chef Server will appear in the `Chef Node` column.
+
+**Note:** Chef API credentials are required for this operation to work.
 
 ```bash
 $ knife clc server list --datacenter ca1 --chef-nodes
 ```
 
 ### `knife clc server power_off`
-**Asynchronous**. Turns server power off. Note that all SSH/RDP sessions will be forcibly closed.
+**Asynchronous**. Turns the server power off.
+
+**Note:** All SSH/RDP sessions will be forcibly closed when this command runs.
 
 ```bash
 $ knife clc server power_off ca1altdqasrv01 --wait
 ```
 
 ### `knife clc server power_on`
-**Asynchronous**. Turns server power on. The server will be available for connections after operation is completed.
+**Asynchronous**. Turns the server power on. The server will be available for connections after this operation is complete.
 
 ```bash
 $ knife clc server power_off ca1altdqasrv01 --wait
 ```
 
 ### `knife clc server reboot`
-**Asynchronous**. Performs OS-level reboot on the server. All applications will be requested to finish current tasks and close.
+**Asynchronous**. Performs an OS-level reboot on the server.
+
+**Note:** All applications that are running will finish the current task and then close.
 
 ```bash
 $ knife clc server reboot ca1altdqasrv01 --wait
 ```
 
 ### `knife clc server show`
-Outputs details for specified server ID. Supports `--uuid` flag to interpret primary argument as UUID. By default, does not show server credentials and opened ports. User may request more information with `--creds` and `--ports` options. Requesting additional information slows command down.
+Outputs details for a specified server ID. This command supports the `--uuid` flag, which interprets the primary argument as a UUID (instead of a server ID). By default, the output does not show server credentials or opened ports. Users may request more information with the `--creds` and `--ports` options.
+
+**Note:** Requesting additional information will slow this command down.
 
 ```bash
 $ knife clc server show 406282c5116443029576a2b9ac56f5cc \
---uuid \ 
+--uuid \
 --creds
 
 $ knife clc server show ca1altdqasrv01 --ports
 ```
 
 ### `knife clc template list`
-**Scoped by datacenter**. Outputs available server templates. Supports `--all` option.
+**Scoped by datacenter**. Outputs available server templates in a specified datacenter. Supports the `--all` option, which returns a list of templates from all datacenters.
 
 ```bash
 $ knife clc template list --datacenter ca1
 ```
 
 ## Contributing
-
 1. Fork it [https://github.com/CenturyLinkCloud/clc-knife/fork](https://github.com/CenturyLinkCloud/clc-knife/fork)
 2. Create your feature branch `git checkout -b my-new-feature`
 3. Commit your changes `git commit -am 'Add some feature'`
