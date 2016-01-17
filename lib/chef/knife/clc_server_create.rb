@@ -183,6 +183,11 @@ class Chef
         :default => false,
         :on => :head
 
+      option :clc_bootstrap_platform,
+        :long => '--bootstrap-platform PLATFORM',
+        :description => 'Assume bootstrapping server platform as windows or linux. Derived automatically by default',
+        :on => :head
+
       def parse_and_validate_parameters
         unless config[:clc_name]
           errors << 'Name is required'
@@ -236,6 +241,13 @@ class Chef
         bootstrap = config[:clc_bootstrap]
         if bootstrap
           check_chef_server_connectivity
+
+          if config[:clc_bootstrap_platform]
+            validate_bootstrap_platform
+          else
+            check_server_platform
+          end
+
           check_server_platform
           if config[:clc_wait]
             check_bootstrap_connectivity_params
@@ -262,6 +274,12 @@ class Chef
         end
       end
 
+      def validate_bootstrap_platform
+        unless %w(linux windows).include? config[:clc_bootstrap_platform]
+          errors << "Unsupported bootstrap platform: #{config[:clc_bootstrap_platform]}"
+        end
+      end
+
       def check_bootstrap_connectivity_params
         return if indirect_bootstrap?
 
@@ -282,10 +300,12 @@ class Chef
         end
 
         if windows_platform
-          errors << 'Bootstrapping is available for Linux platform only'
+          config[:clc_bootstrap_platform] = 'windows'
+        else
+          config[:clc_bootstrap_platform] = 'linux'
         end
       rescue Clc::CloudExceptions::Error => e
-        errors << "Could not derive server bootstrap platform: #{e.message}"
+        errors << "Could not derive server bootstrap platform: #{e.message}. Please set it manually via --bootstrap-platform"
       end
 
       def find_source_template
@@ -544,7 +564,11 @@ class Chef
 
       def add_bootstrapping_params(launch_params)
         launch_params['packages'] ||= []
-        launch_params['packages'] << package_for_async_bootstrap
+        if config[:clc_bootstrap_platform] == 'linux'
+          launch_params['packages'] << package_for_async_bootstrap
+        else
+          launch_params['packages'] << package_for_async_windows_bootstrap
+        end
       end
 
       def package_for_async_bootstrap
@@ -555,6 +579,40 @@ class Chef
             'Script' => bootstrap_command.render_template
           }
         }
+      end
+
+      def package_for_async_windows_bootstrap
+        require 'chef/knife/bootstrap_windows_base'
+        klass = Chef::Knife::BootstrapWindowsSsh
+        klass.load_deps
+        bootstrap_command = klass.new
+        bootstrap_command.config.merge!(config)
+        bootstrap_command.configure_chef
+
+        script = bootstrap_command.render_template(bootstrap_command.load_template(config[:bootstrap_template]))
+        minified_script = minify_bat_script(script)
+
+        {
+          'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
+          'parameters' => {
+            'Mode' => 'Command',
+            'Script' => minified_script
+          }
+        }
+      end
+
+      def minify_bat_script(script)
+        without_empty_echos = script.lines.delete_if do |line|
+          line.include?("@rem") || line == "echo.\n"# || line.include?("@echo") || line.include?("echo ") || line == "echo.\n"
+        end.join("")
+
+        with_echos_that_matter = without_empty_echos.lines.delete_if.with_index do |line, index|
+          next unless line.include? "@echo"
+          next unless higher_line = without_empty_echos.lines[index - 1]
+          (higher_line.include?('ERROR') || higher_line.include?('ERRORLEVEL')) ? false : true
+        end.join("")
+
+        with_echos_that_matter.squeeze(" ").squeeze("\n")
       end
 
       def get_server_fqdn(server)
