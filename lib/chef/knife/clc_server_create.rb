@@ -567,7 +567,7 @@ class Chef
         if config[:clc_bootstrap_platform] == 'linux'
           launch_params['packages'] << package_for_async_bootstrap
         else
-          launch_params['packages'] << package_for_async_windows_bootstrap
+          launch_params['packages'].push(*package_for_async_windows_bootstrap)
         end
       end
 
@@ -590,29 +590,33 @@ class Chef
         bootstrap_command.configure_chef
 
         script = bootstrap_command.render_template(bootstrap_command.load_template(config[:bootstrap_template]))
-        minified_script = minify_bat_script(script)
 
-        {
-          'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-          'parameters' => {
-            'Mode' => 'Command',
-            'Script' => minified_script
+        parts = split_script(script)
+
+        parts.map do |part|
+          {
+            'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
+            'parameters' => {
+              'Mode' => 'PowerShell',
+              'Script' => part
+            }
           }
-        }
+        end
       end
 
-      def minify_bat_script(script)
-        without_empty_echos = script.lines.delete_if do |line|
-          line.include?("@rem") || line == "echo.\n"# || line.include?("@echo") || line.include?("echo ") || line == "echo.\n"
-        end.join("")
+      def split_script(script)
+        batch_size = 100
 
-        with_echos_that_matter = without_empty_echos.lines.delete_if.with_index do |line, index|
-          next unless line.include? "@echo"
-          next unless higher_line = without_empty_echos.lines[index - 1]
-          (higher_line.include?('ERROR') || higher_line.include?('ERRORLEVEL')) ? false : true
-        end.join("")
+        partial_scripts = script.lines.each_slice(batch_size).map do |lines|
+          part = "$script = @'\n" +
+          lines.join('') +
+          "'@\n" +
+          "$script | out-file C:\\bootstrap.bat -Append -Encoding ASCII\n"
 
-        with_echos_that_matter.squeeze(" ").squeeze("\n")
+          part.gsub("\n", "\r\n")
+        end
+
+        partial_scripts << 'C:\bootstrap.bat'
       end
 
       def get_server_fqdn(server)
