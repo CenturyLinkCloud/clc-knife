@@ -9,7 +9,7 @@ class Chef
   class Knife
     class ClcServerCreate < Knife
       include Knife::ClcBase
-      attr_accessor :windows_platform
+      include Knife::WinrmBase
 
       banner 'knife clc server create (options)'
 
@@ -187,10 +187,9 @@ class Chef
         :on => :head
 
       option :bootstrap_protocol,
-        :long => "--bootstrap-protocol protocol",
-        :description => "protocol to bootstrap windows servers. options: winrm/ssh",
-        :proc => Proc.new { |key| Chef::Config[:knife][:bootstrap_protocol] = key },
-        :default => nil
+        :long => "--bootstrap-protocol PROTOCOL",
+        :description => "Protocol to bootstrap windows servers. options: winrm/ssh",
+        :default => "winrm"
 
       def parse_and_validate_parameters
         unless config[:clc_name]
@@ -234,6 +233,7 @@ class Chef
 
         permissions = config[:clc_allowed_protocols]
         if permissions && permissions.any?
+          config[:requested_protocols] = permissions.dup
           parse_protocol_permissions(permissions)
         end
 
@@ -250,6 +250,12 @@ class Chef
             check_bootstrap_connectivity_params
           else
             check_bootstrap_node_connectivity_params
+          end
+        end
+
+        if config[:bootstrap_protocol]
+          unless %w(ssh winrm).include? config[:bootstrap_protocol]
+            errors << "Unsupported bootstrap protocol for #{config[:bootstrap_protocol]}"
           end
         end
       end
@@ -272,12 +278,20 @@ class Chef
       end
 
       def check_bootstrap_connectivity_params
-        return if indirect_bootstrap? || config[:bootstrap_protocol] == 'winrm'
+        return if indirect_bootstrap?
 
         if public_ip_requested?
-          errors << 'Bootstrapping requires SSH access to the server' unless ssh_access_requested?
+          check_connectivity_errors
         else
           errors << 'Bootstrapping requires public IP access to the server. Ignore this check with --bootstrap-private'
+        end
+      end
+
+      def check_connectivity_errors
+        config[:requested_protocols].each do |protocol|
+          unless public_send("#{protocol.downcase}_access_requested?")
+            errors << "Bootstrapping requires #{protocol}.capitalize access to the server"
+          end
         end
       end
 
@@ -290,11 +304,13 @@ class Chef
           windows_platform = server['os'] =~ /windows/
         end
 
-        # if windows_platform
-        #   errors << 'Bootstrapping is available for Linux platform only'
-        # end
+        if windows_platform
+          config[:clc_bootstrap_platform] = 'windows'
+        else
+          config[:clc_bootstrap_platform] = 'linux'
+        end
       rescue Clc::CloudExceptions::Error => e
-        errors << "Could not derive server bootstrap platform: #{e.message}"
+        errors << "Could not derive server bootstrap platform: #{e.message}. Please set it manually via --bootstrap-platform"
       end
 
       def find_source_template
@@ -311,6 +327,24 @@ class Chef
 
       def public_ip_requested?
         config[:clc_allowed_protocols] && config[:clc_allowed_protocols].any?
+      end
+
+      def winrm_access_requested?
+        winrm_port = requested_winrm_port
+
+        config[:clc_allowed_protocols].find do |permission|
+          protocol, from, to = permission.values_at('protocol', 'port', 'portTo')
+          next unless protocol == 'tcp'
+          next unless from
+
+          to ||= from
+
+          Range.new(from, to).include? winrm_port
+        end
+      end
+
+      def requested_winrm_port
+        (config[:winrm_port] && Integer(config[:winrm_port])) || 5985
       end
 
       def ssh_access_requested?
@@ -380,6 +414,7 @@ class Chef
           when 'https' then { 'protocol' => 'tcp', 'port' => 443 }
           when 'ftp' then { 'protocol' => 'tcp', 'port' => 21 }
           when 'ftps' then { 'protocol' => 'tcp', 'port' => 990 }
+          when 'winrm' then [{ 'protocol' => 'tcp', 'port' => 5985 }, { 'protocol' => 'tcp', 'port' => 5986 }]
           when 'udp', 'tcp'
             unless port_range
               errors << "No ports specified for #{param}"
@@ -440,14 +475,8 @@ class Chef
       end
 
       def prepare_ip_params
-        ports = []
-        ports << config[:clc_allowed_protocols]
-        if config[:bootstrap_protocol]
-          ports << { 'protocol' => 'tcp', 'port' => 5985 }
-        end
-
         {
-          'ports' => ports.compact,
+          'ports' => config[:clc_allowed_protocols],
           'sourceRestrictions' => config[:clc_sources]
         }.delete_if { |_, value| value.nil? || value.empty? }
       end
@@ -458,7 +487,14 @@ class Chef
 
       def sync_create_server
         ui.info 'Requesting server launch...'
-        links = connection.create_server(prepare_launch_params)
+        launch_params = prepare_launch_params
+
+        if config[:clc_bootstrap] && config[:clc_bootstrap_platform] == 'windows' && knife_running_on_linux?
+          launch_params['packages'] ||= []
+          launch_params['packages'] << enable_winrm_package
+        end
+
+        links = connection.create_server(launch_params)
         connection.wait_for(links['operation']['id']) { putc '.' }
         ui.info "\n"
         ui.info "Server has been launched"
@@ -473,7 +509,7 @@ class Chef
         end
 
         if config[:clc_bootstrap]
-          if config[:clc_source_server] =~ /WIN/
+          if config[:clc_bootstrap_platform] == 'windows'
             sync_win_bootstrap(links['resource']['id'])
           else
             sync_bootstrap(links['resource']['id'])
@@ -542,39 +578,34 @@ class Chef
       def sync_win_bootstrap(uuid)
         server = connection.show_server(uuid, true)
         ensure_server_powered_on(server)
-        if os_linux?
-          links = enable_winrm(uuid)
-          puts links['links'].first['id'].inspect
-          connection.wait_for(links['links'].first['id']) { putc '.' }
-        end
-        creds = get_server_credentials(server)
         command = bootstrap_windows_command
-        command.config[:winrm_user] = creds["userName"]
-        command.config[:winrm_password] = creds["password"]
-        command.config[:winrm_transport] = :sspinegotiate if os_windows?
+
+        username, password = config.values_at(:winrm_user, :winrm_password)
+        command.config[:winrm_user] = username
+        command.config[:winrm_password] = password
+
+        unless username && password
+          creds = get_server_credentials(server)
+          command.config.merge!(:winrm_user => creds['userName'], :winrm_password => creds['password'])
+        end
+
         command.name_args = [get_server_fqdn(server)]
         command.config[:chef_node_name] ||= server['name']
 
         retry_on_timeouts { command.run }
       end
 
-      def enable_winrm(uuid)
-        server = connection.show_server(uuid, true)
-        params = {
-          'servers' => [server['id']],
-          'package' => {
-            'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-            'parameters' => {
-              'Mode' => 'PowerShell',
-              'Script' => "
-                winrm set winrm/config/service/auth '@{Basic=\"true\"}';
-                winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'
-              "
-            }
+      def enable_winrm_package
+        {
+          'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
+          'parameters' => {
+            'Mode' => 'PowerShell',
+            'Script' => "
+              winrm set winrm/config/service/auth '@{Basic=\"true\"}'
+              winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'
+            "
           }
         }
-
-        connection.execute_package(params).first
       end
 
       def bootstrap_windows_command
@@ -582,9 +613,6 @@ class Chef
           command = Chef::Knife::BootstrapWindowsWinrm.new
         elsif config[:bootstrap_protocol] == "ssh"
           command = Chef::Knife::BootstrapWindowsSsh.new
-        else
-          ui.error "Unsupported Bootstrapping Protocol. Supported : winrm, ssh"
-          exit 1
         end
       end
 
