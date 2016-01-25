@@ -14,7 +14,10 @@ module Knife
         end
 
         def execute
-          connection.create_server(launch_parameters)
+          server_params = launch_parameters
+          yield server_params if block_given?
+
+          connection.create_server(server_params)
         end
 
         def prepare

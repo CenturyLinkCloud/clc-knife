@@ -13,7 +13,7 @@ module Knife
           @errors = params.fetch(:errors)
         end
 
-        # TODO AS: PARAMS, DANGER!
+        # TODO: Params ordering dependency
         def execute(server_id)
           connection.create_ip_address(server_id, ip_params)
         end

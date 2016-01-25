@@ -63,14 +63,13 @@ class Chef
       end
 
       def async_create_server
-        if config[:clc_bootstrap]
-          # TODO AS: No-op for now
-          # add_bootstrapping_params(launch_params)
-          ui.info 'Bootstrap has been scheduled'
-        end
-
         ui.info 'Requesting server launch...'
-        links = server_launcher.execute
+        links = server_launcher.execute do |launch_params|
+          if config[:clc_bootstrap]
+            bootstrapper.add_bootstrapping_params(launch_params)
+            ui.info 'Bootstrap has been scheduled'
+          end
+        end
         ui.info 'Launch request has been sent'
         ui.info "You can check launch operation status with 'knife clc operation show #{links['operation']['id']}'"
 

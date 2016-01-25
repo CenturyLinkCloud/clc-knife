@@ -32,6 +32,16 @@ module Knife
           retry_on_timeouts { command.run }
         end
 
+        # TODO: Extract to separate async bootstrap module
+        def add_bootstrapping_params(launch_params)
+          launch_params['packages'] ||= []
+          if config[:clc_bootstrap_platform] == 'linux'
+            launch_params['packages'] << package_for_async_bootstrap
+          else
+            launch_params['packages'].push(*package_for_async_windows_bootstrap)
+          end
+        end
+
         def prepare
           validator.validate
         end
@@ -44,16 +54,6 @@ module Knife
             :config => config,
             :errors => errors
           )
-        end
-
-        # TODO: Extract to separate async bootstrap module
-        def add_bootstrapping_params(launch_params)
-          launch_params['packages'] ||= []
-          if config[:clc_bootstrap_platform] == 'linux'
-            launch_params['packages'] << package_for_async_bootstrap
-          else
-            launch_params['packages'].push(*package_for_async_windows_bootstrap)
-          end
         end
 
         # TODO: Sync module
