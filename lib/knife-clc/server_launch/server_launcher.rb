@@ -5,10 +5,6 @@ module Knife
   module Clc
     module ServerLaunch
       class ServerLauncher
-        extend Forwardable
-
-        def_delegator :validator, :validate
-
         attr_reader :config, :connection, :errors
 
         def initialize(params)
@@ -21,10 +17,14 @@ module Knife
           connection.create_server(launch_parameters)
         end
 
+        def prepare
+          validator.validate
+        end
+
         private
 
         def launch_parameters
-          mapper.prepare
+          mapper.prepare_launch_parameters
         end
 
         def validator

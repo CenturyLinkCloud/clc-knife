@@ -8,7 +8,7 @@ module Knife
           @config = params.fetch(:config)
         end
 
-        def prepare
+        def prepare_launch_parameters
           {
             'name' => config[:clc_name],
             'description' => config[:clc_description],

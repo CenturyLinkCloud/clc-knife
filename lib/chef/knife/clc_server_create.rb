@@ -1,13 +1,10 @@
-require 'chef/knife/clc_base'
 require 'chef/knife/clc_server_show'
-require 'chef/knife/bootstrap'
-require 'chef/node'
 
-require 'knife-clc/mixins/base'
-require 'knife-clc/mixins/async'
-require 'knife-clc/mixins/server_launch'
-require 'knife-clc/mixins/bootstrap'
-require 'knife-clc/mixins/ip_assignment'
+require 'knife-clc/base'
+require 'knife-clc/async'
+require 'knife-clc/server_launch'
+require 'knife-clc/bootstrap'
+require 'knife-clc/ip_assignment'
 
 class Chef
   class Knife
@@ -21,9 +18,9 @@ class Chef
       banner 'knife clc server create (options)'
 
       def parse_and_validate_parameters
-        server_launcher.validate
-        ip_assigner.validate
-        bootstrapper.validate
+        server_launcher.prepare
+        ip_assigner.prepare
+        bootstrapper.prepare
       end
 
       def execute

@@ -1,6 +1,3 @@
-require 'knife-clc/mixins/ip_assignment/validator'
-require 'knife-clc/mixins/ip_assignment/mapper'
-
 require_relative 'validator'
 require_relative 'mapper'
 
@@ -8,10 +5,6 @@ module Knife
   module Clc
     module IpAssignment
       class IpAssigner
-        extend Forwardable
-
-        def_delegator :validator, :validate
-
         attr_reader :connection, :config, :errors
 
         def initialize(params)
@@ -25,10 +18,14 @@ module Knife
           connection.create_ip_address(server_id, ip_params)
         end
 
+        def prepare
+          validator.validate
+        end
+
         private
 
         def ip_params
-          mapper.prepare
+          mapper.prepare_ip_params
         end
 
         def validator

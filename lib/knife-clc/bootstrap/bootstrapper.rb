@@ -4,10 +4,6 @@ module Knife
   module Clc
     module Bootstrap
       class Bootstrapper
-        extend Forwardable
-
-        def_delegator :validator, :validate
-
         attr_reader :connection, :config, :errors, :ui
 
         def initialize(params)
@@ -36,6 +32,10 @@ module Knife
           command.config[:chef_node_name] ||= server['name']
 
           retry_on_timeouts { command.run }
+        end
+
+        def prepare
+          validator.validate
         end
 
         private

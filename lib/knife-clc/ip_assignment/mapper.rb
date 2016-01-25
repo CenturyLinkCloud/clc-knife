@@ -8,7 +8,7 @@ module Knife
           @config = params.fetch(:config)
         end
 
-        def prepare
+        def prepare_ip_params
           {
             'ports' => config[:clc_allowed_protocols],
             'sourceRestrictions' => config[:clc_sources]
