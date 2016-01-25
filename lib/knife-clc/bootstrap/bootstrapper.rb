@@ -4,20 +4,18 @@ module Knife
   module Clc
     module Bootstrap
       class Bootstrapper
-        attr_reader :connection, :config, :errors, :ui
+        attr_reader :cloud_adapter, :config, :errors, :ui
 
         def initialize(params)
-          @connection = params.fetch(:connection)
+          @cloud_adapter = params.fetch(:cloud_adapter)
           @config = params.fetch(:config)
           @errors = params.fetch(:errors)
           @ui = params.fetch(:ui)
         end
 
-        # Sync stuff
-        def sync_bootstrap(uuid)
-          server = connection.show_server(uuid, true)
-
-          ensure_server_powered_on(server)
+        # TODO: Extract to separate sync bootstrap module
+        def sync_bootstrap(server)
+          cloud_adapter.ensure_server_powered_on(server)
 
           command = bootstrap_command
 
@@ -25,7 +23,7 @@ module Knife
 
           username, password = config.values_at(:ssh_user, :ssh_password)
           unless username && password
-            creds = get_server_credentials(server)
+            creds = cloud_adapter.get_server_credentials(server)
             command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
           end
 
@@ -42,13 +40,13 @@ module Knife
 
         def validator
           @validator ||= Validator.new(
-            :connection => connection,
+            :connection => cloud_adapter.connection,
             :config => config,
             :errors => errors
           )
         end
 
-        # Async stuff
+        # TODO: Extract to separate async bootstrap module
         def add_bootstrapping_params(launch_params)
           launch_params['packages'] ||= []
           if config[:clc_bootstrap_platform] == 'linux'
@@ -58,16 +56,7 @@ module Knife
           end
         end
 
-        # Sync stuff
-        def ensure_server_powered_on(server)
-          return unless server['details']['powerState'] == 'stopped'
-          ui.info 'Requesting server power on...'
-          links = connection.power_on_server(server['id'])
-          connection.wait_for(links['operation']['id']) { putc '.' }
-          ui.info "\n"
-          ui.info 'Server has been powered on'
-        end
-
+        # TODO: Sync module
         def retry_on_timeouts(tries = 2, &block)
           yield
         rescue Errno::ETIMEDOUT => e
@@ -81,26 +70,21 @@ module Knife
           end
         end
 
+        # TODO: Sync module
         def get_server_fqdn(server)
           if indirect_bootstrap?
-            private_ips = server['details']['ipAddresses'].map { |addr| addr['internal'] }.compact
-            private_ips.first
+            cloud_adapter.get_private_ip(server)
           else
-            public_ips = server['details']['ipAddresses'].map { |addr| addr['public'] }.compact
-            public_ips.first
+            cloud_adapter.get_public_ip(server)
           end
         end
 
+        # TODO: Sync module
         def indirect_bootstrap?
           config[:clc_bootstrap_private] || config[:ssh_gateway]
         end
 
-        def get_server_credentials(server)
-          creds_link = server['links'].find { |link| link['rel'] == 'credentials' }
-          connection.follow(creds_link) if creds_link
-        end
-
-        # Async stuff
+        # TODO: Async module
         def package_for_async_bootstrap
           {
             'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
@@ -111,6 +95,7 @@ module Knife
           }
         end
 
+        # TODO: Async module
         def package_for_async_windows_bootstrap
           require 'chef/knife/bootstrap_windows_base'
           klass = Chef::Knife::BootstrapWindowsSsh
@@ -134,14 +119,15 @@ module Knife
           end
         end
 
+        # TODO: Async module
         def split_script(script)
           batch_size = 100
 
           partial_scripts = script.lines.each_slice(batch_size).map do |lines|
             part = "$script = @'\n" +
-            lines.join('') +
-            "'@\n" +
-            "$script | out-file C:\\bootstrap.bat -Append -Encoding ASCII\n"
+              lines.join('') +
+              "'@\n" +
+              "$script | out-file C:\\bootstrap.bat -Append -Encoding ASCII\n"
 
             part.gsub("\n", "\r\n")
           end
@@ -149,12 +135,7 @@ module Knife
           partial_scripts << 'C:\bootstrap.bat'
         end
 
-        # Validations, checks and config parsing stuff
-        def indirect_bootstrap?
-          config[:clc_bootstrap_private] || config[:ssh_gateway]
-        end
-
-        # Probably generic stuff
+        # TODO: Seems like generic part for both sync and async
         def bootstrap_command
           bootstrap_command_class.load_deps
           command = bootstrap_command_class.new
@@ -163,6 +144,7 @@ module Knife
           command
         end
 
+        # TODO: Should be parametrized to support windows & linux
         def bootstrap_command_class
           Chef::Knife::Bootstrap
         end

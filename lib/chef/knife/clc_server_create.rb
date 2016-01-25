@@ -2,6 +2,7 @@ require 'chef/knife/clc_server_show'
 
 require 'knife-clc/base'
 require 'knife-clc/async'
+require 'knife-clc/cloud_extensions'
 require 'knife-clc/server_launch'
 require 'knife-clc/bootstrap'
 require 'knife-clc/ip_assignment'
@@ -11,6 +12,7 @@ class Chef
     class ClcServerCreate < Knife
       include ::Knife::Clc::Base
       include ::Knife::Clc::Async
+      include ::Knife::Clc::CloudExtensions
       include ::Knife::Clc::ServerLaunch
       include ::Knife::Clc::IpAssignment
       include ::Knife::Clc::Bootstrap
@@ -34,9 +36,10 @@ class Chef
         ui.info "\n"
         ui.info "Server has been launched"
 
+        server = connection.follow(links['resource'])
+
         if config[:clc_allowed_protocols]
           ui.info 'Requesting public IP...'
-          server = connection.follow(links['resource'])
           ip_links = ip_assigner.execute(server['id'])
           connection.wait_for(ip_links['operation']['id']) { putc '.' }
           ui.info "\n"
@@ -44,7 +47,7 @@ class Chef
         end
 
         if config[:clc_bootstrap]
-          bootstrapper.sync_bootstrap(links['resource']['id'])
+          bootstrapper.sync_bootstrap(server)
         end
 
         argv = [links['resource']['id'], '--uuid', '--creds']

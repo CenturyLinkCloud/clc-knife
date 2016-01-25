@@ -10,7 +10,7 @@ module Knife
 
       def bootstrapper
         @bootstrapper = Bootstrapper.new(
-          :connection => connection,
+          :cloud_adapter => cloud_adapter,
           :config => config,
           :errors => errors,
           :ui => ui

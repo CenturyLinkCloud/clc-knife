@@ -2,7 +2,7 @@ require_relative 'base/config_options'
 
 require 'hirb'
 require 'clc'
-require 'knife-clc/version' # dunno
+require 'knife-clc/version'
 
 module Knife
   module Clc
