@@ -80,9 +80,15 @@ module Knife
         def parse_packages(packages)
           packages.map! do |param|
             begin
-              id, package_params = param.split(',', 2)
-              package_params = package_params.split(',').map { |pair| Hash[*pair.split('=', 2)] }
-              { 'packageId' => id, 'parameters' => package_params }
+              id, raw_params = param.split(',', 2)
+
+              parsed_params = {}
+              raw_params.split(',').each do |raw_pair|
+                key, value = raw_pair.split('=', 2)
+                parsed_params[key] = value
+              end
+
+              { 'packageId' => id, 'parameters' => parsed_params }
             rescue Exception => e
               errors << "Package definition #{param} is malformed"
             end
