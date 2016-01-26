@@ -31,7 +31,13 @@ class Chef
 
       def sync_create_server
         ui.info 'Requesting server launch...'
-        links = server_launcher.execute
+        links = server_launcher.execute do |launch_params|
+          if config[:clc_bootstrap]# && config[:clc_bootstrap_platform] == 'windows'
+            bootstrapper.schedule_sshd_installation(launch_params)
+            ui.info 'SSH daemon installation scheduled'
+          end
+        end
+
         connection.wait_for(links['operation']['id']) { putc '.' }
         ui.info "\n"
         ui.info "Server has been launched"
@@ -45,6 +51,8 @@ class Chef
           ui.info "\n"
           ui.info 'Public IP has been assigned'
         end
+
+        server = connection.follow(links['resource'])
 
         if config[:clc_bootstrap]
           bootstrapper.sync_bootstrap(server)

@@ -1,4 +1,5 @@
 require_relative 'validator'
+require_relative 'windows_ssh_bootstrapper'
 
 module Knife
   module Clc
@@ -15,6 +16,11 @@ module Knife
 
         # TODO: Extract to separate sync bootstrap module
         def sync_bootstrap(server)
+          #if config[:clc_bootstrap_platform] == 'windows'
+            windows_ssh_bootstrapper.execute(server)
+            return
+          #end
+
           cloud_adapter.ensure_server_powered_on(server)
 
           command = bootstrap_command
@@ -42,11 +48,28 @@ module Knife
           end
         end
 
+        def schedule_sshd_installation(launch_params)
+          launch_params['packages'] ||= []
+          launch_params['packages'] << package_for_sshd
+        end
+
         def prepare
           validator.validate
         end
 
         private
+
+        def windows_ssh_bootstrapper
+          @windows_ssh_bootstrapper ||= WindowsSshBootstrapper.new(
+            :config => config,
+            :cloud_adapter => cloud_adapter,
+            :ui => ui
+          )
+        end
+
+        def package_for_sshd
+          windows_ssh_bootstrapper.package_for_sshd
+        end
 
         def validator
           @validator ||= Validator.new(

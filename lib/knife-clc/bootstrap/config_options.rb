@@ -1,4 +1,5 @@
 require 'chef/knife/bootstrap'
+require 'chef/knife/bootstrap_windows_base'
 
 module Knife
   module Clc
