@@ -57,14 +57,6 @@ class Chef
           def execute
           end
 
-          def knife_running_on_windows?
-            (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
-          end
-
-          def  knife_running_on_linux?
-            !knife_running_on_windows?
-          end
-
           def errors
             @errors ||= []
           end

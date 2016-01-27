@@ -327,7 +327,7 @@ describe Chef::Knife::ClcServerCreate do
       end
 
       let(:expected_fields) { [{ 'id' => 'FIELD', 'value' => 'VALUE' }] }
-      let(:expected_packages) { [{ 'packageId' => 'editor', 'parameters' => [{ 'LICENSE' => 'FREE' }] }] }
+      let(:expected_packages) { [{ 'packageId' => 'editor', 'parameters' => { 'LICENSE' => 'FREE' } }] }
       let(:expected_disks) { [{ 'path' => '/dev/sda', 'sizeGB' => '10', 'type' => 'raw' }] }
       let(:expected_sources) { [{ 'cidr' => '0.0.0.0/0' }, { 'cidr' => '10.0.0.0/0' }] }
       let(:expected_protocols) do
