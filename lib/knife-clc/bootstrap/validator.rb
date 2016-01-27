@@ -29,6 +29,12 @@ module Knife
           else
             check_bootstrap_node_connectivity_params
           end
+
+          if config[:bootstrap_protocol]
+            unless %w(ssh winrm).include? config[:bootstrap_protocol]
+              errors << "Unsupported bootstrap protocol for #{config[:bootstrap_protocol]}"
+            end
+          end
         end
 
         private
@@ -59,9 +65,17 @@ module Knife
           return if indirect_bootstrap?
 
           if public_ip_requested?
-            errors << 'Bootstrapping requires SSH access to the server' unless ssh_access_requested?
+            check_connectivity_errors
           else
             errors << 'Bootstrapping requires public IP access to the server. Ignore this check with --bootstrap-private'
+          end
+        end
+
+        def check_connectivity_errors
+          config[:requested_protocols].each do |protocol|
+            unless send("#{protocol.downcase}_access_requested?")
+              errors << "Bootstrapping requires #{protocol}.capitalize access to the server"
+            end
           end
         end
 
@@ -97,6 +111,24 @@ module Knife
 
         def public_ip_requested?
           config[:clc_allowed_protocols] && config[:clc_allowed_protocols].any?
+        end
+
+        def winrm_access_requested?
+          winrm_port = requested_winrm_port
+
+          config[:clc_allowed_protocols].find do |permission|
+            protocol, from, to = permission.values_at('protocol', 'port', 'portTo')
+            next unless protocol == 'tcp'
+            next unless from
+
+            to ||= from
+
+            Range.new(from, to).include? winrm_port
+          end
+        end
+
+        def requested_winrm_port
+          (config[:winrm_port] && Integer(config[:winrm_port])) || 5985
         end
 
         def ssh_access_requested?

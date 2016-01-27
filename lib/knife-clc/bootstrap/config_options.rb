@@ -24,6 +24,11 @@ module Knife
               :long => '--bootstrap-platform PLATFORM',
               :description => 'Assume bootstrapping server platform as windows or linux. Derived automatically by default',
               :on => :head
+
+            option :bootstrap_protocol,
+              :long => "--bootstrap-protocol PROTOCOL",
+              :description => "Protocol to bootstrap windows servers. options: winrm/ssh",
+              :default => "winrm"
           end
 
           attach_platform_specific_options(command_class)

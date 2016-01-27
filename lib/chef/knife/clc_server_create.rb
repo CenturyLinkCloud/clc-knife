@@ -31,7 +31,15 @@ class Chef
 
       def sync_create_server
         ui.info 'Requesting server launch...'
-        links = server_launcher.execute
+
+        if config[:clc_bootstrap] && config[:clc_bootstrap_platform] == 'windows' && knife_running_on_linux?
+          links = server_launcher.execute do |launch_params|
+            launch_params["packages"] ||= []
+            launch_params["packages"] << bootstrapper.enable_winrm_package
+          end
+        else
+          links = server_launcher.execute
+        end
         connection.wait_for(links['operation']['id']) { putc '.' }
         ui.info "\n"
         ui.info "Server has been launched"
@@ -44,10 +52,15 @@ class Chef
           connection.wait_for(ip_links['operation']['id']) { putc '.' }
           ui.info "\n"
           ui.info 'Public IP has been assigned'
+          server = connection.follow(links['resource'])
         end
 
         if config[:clc_bootstrap]
-          bootstrapper.sync_bootstrap(server)
+          if config[:clc_bootstrap_platform] == 'windows'
+            bootstrapper.sync_win_bootstrap(server)
+          else
+            bootstrapper.sync_bootstrap(server)
+          end
         end
 
         argv = [links['resource']['id'], '--uuid', '--creds']
