@@ -32,6 +32,7 @@ module Knife
             when 'https' then { 'protocol' => 'tcp', 'port' => 443 }
             when 'ftp' then { 'protocol' => 'tcp', 'port' => 21 }
             when 'ftps' then { 'protocol' => 'tcp', 'port' => 990 }
+            when 'winrm' then [{ 'protocol' => 'tcp', 'port' => 5985 }, { 'protocol' => 'tcp', 'port' => 5986 }]
             when 'udp', 'tcp'
               unless port_range
                 errors << "No ports specified for #{param}"

@@ -14,7 +14,16 @@ module Knife
         end
 
         # TODO: Extract to separate sync bootstrap module
+
         def sync_bootstrap(server)
+          if config[:clc_bootstrap_platform] == 'windows'
+            sync_windows_bootstrap(server)
+          else
+            sync_linux_bootstrap(server)
+          end
+        end
+
+        def sync_linux_bootstrap(server)
           cloud_adapter.ensure_server_powered_on(server)
 
           command = bootstrap_command
@@ -32,6 +41,25 @@ module Knife
           retry_on_timeouts { command.run }
         end
 
+        def sync_windows_bootstrap(server)
+          cloud_adapter.ensure_server_powered_on(server)
+          command = bootstrap_windows_command
+
+          username, password = config.values_at(:winrm_user, :winrm_password)
+          command.config[:winrm_user] = username
+          command.config[:winrm_password] = password
+
+          unless username && password
+            creds = cloud_adapter.get_server_credentials(server)
+            command.config.merge!(:winrm_user => creds['userName'], :winrm_password => creds['password'])
+          end
+
+          command.name_args = [get_server_fqdn(server)]
+          command.config[:chef_node_name] ||= server['name']
+
+          retry_on_timeouts { command.run }
+        end
+
         # TODO: Extract to separate async bootstrap module
         def add_bootstrapping_params(launch_params)
           launch_params['packages'] ||= []
@@ -44,6 +72,19 @@ module Knife
 
         def prepare
           validator.validate
+        end
+
+        def enable_winrm_package
+          {
+            'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
+            'parameters' => {
+              'Mode' => 'PowerShell',
+              'Script' => "
+                winrm set winrm/config/service/auth '@{Basic=\"true\"}'
+                winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'
+              "
+            }
+          }
         end
 
         private
@@ -142,6 +183,10 @@ module Knife
           command.config.merge!(config)
           command.configure_chef
           command
+        end
+
+        def bootstrap_windows_command
+          Chef::Knife::BootstrapWindowsWinrm.new
         end
 
         # TODO: Should be parametrized to support windows & linux
