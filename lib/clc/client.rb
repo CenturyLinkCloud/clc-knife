@@ -144,7 +144,7 @@ module Clc
       connection.get(link['href']).body
     end
 
-    def wait_for(operation_id, timeout = 360)
+    def wait_for(operation_id, timeout = 1200)
       expire_at = Time.now + timeout
       loop do
         operation = show_operation(operation_id)

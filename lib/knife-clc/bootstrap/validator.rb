@@ -59,9 +59,17 @@ module Knife
           return if indirect_bootstrap?
 
           if public_ip_requested?
-            errors << 'Bootstrapping requires SSH access to the server' unless ssh_access_requested?
+            check_connectivity_errors
           else
             errors << 'Bootstrapping requires public IP access to the server. Ignore this check with --bootstrap-private'
+          end
+        end
+
+        def check_connectivity_errors
+          if config[:clc_bootstrap_platform] == 'windows'
+            errors << "Bootstrapping requires Winrm access to the server" unless winrm_access_requested?
+          else
+            errors << "Bootstrapping requires SSH access to the server" unless ssh_access_requested?
           end
         end
 
@@ -97,6 +105,25 @@ module Knife
 
         def public_ip_requested?
           config[:clc_allowed_protocols] && config[:clc_allowed_protocols].any?
+        end
+
+
+        def winrm_access_requested?
+          winrm_port = requested_winrm_port
+
+          config[:clc_allowed_protocols].find do |permission|
+            protocol, from, to = permission.values_at('protocol', 'port', 'portTo')
+            next unless protocol == 'tcp'
+            next unless from
+
+            to ||= from
+
+            Range.new(from, to).include? winrm_port
+          end
+        end
+
+        def requested_winrm_port
+          (config[:winrm_port] && Integer(config[:winrm_port])) || 5985
         end
 
         def ssh_access_requested?
