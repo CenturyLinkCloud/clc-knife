@@ -138,8 +138,8 @@ module Knife
 
         # TODO: Async module
         def package_for_async_windows_bootstrap
-          require 'chef/knife/bootstrap_windows_base'
-          klass = Chef::Knife::BootstrapWindowsSsh
+          require 'chef/knife/bootstrap_windows_winrm'
+          klass = Chef::Knife::BootstrapWindowsWinrm
           klass.load_deps
           bootstrap_command = klass.new
           bootstrap_command.config.merge!(config)
