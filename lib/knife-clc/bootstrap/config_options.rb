@@ -40,7 +40,7 @@ module Knife
 
           linux_specific_option_keys.each do |linux_key|
             description = linux_options[linux_key][:description]
-            linux_options[linux_key][:description] = '[Linux Only] ' + description
+            linux_options[linux_key][:description] = '(Linux Only) ' + description
           end
 
           windows_specific_option_keys.each do |windows_key|
