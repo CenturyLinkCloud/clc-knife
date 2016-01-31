@@ -15,7 +15,6 @@ module Knife
         end
 
         # TODO: Extract to separate sync bootstrap module
-
         def sync_bootstrap(server)
           if config[:clc_bootstrap_platform] == 'windows'
             sync_windows_bootstrap(server)
@@ -32,17 +31,16 @@ module Knife
 
           command = bootstrap_command
 
-          command.name_args = [fqdn]
-
           username, password = config.values_at(:ssh_user, :ssh_password)
           unless username && password
             creds = cloud_adapter.get_server_credentials(server)
             command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
           end
 
+          command.name_args = [fqdn]
           command.config[:chef_node_name] ||= server['name']
 
-          retry_on_timeouts { command.run }
+          command.run
         end
 
         def sync_windows_bootstrap(server)
@@ -65,7 +63,7 @@ module Knife
           command.name_args = [fqdn]
           command.config[:chef_node_name] ||= server['name']
 
-          retry_on_timeouts { command.run }
+          command.run
         end
 
         # TODO: Extract to separate async bootstrap module
@@ -110,14 +108,20 @@ module Knife
         end
 
         # Linux Connectivity stuff
-        # TODO AS: Add tunelling support
-        # TODO AS: Check only when SSH is expected..?
         def wait_for_sshd(hostname)
           expire_at = Time.now + 30
+
+          # TODO AS: Not being set by default
           port = config[:ssh_port] || 22
 
-          until connectivity_helper.test_tcp(:host => hostname, :port => port)
-            raise 'Could not establish SSH connection with the server' if Time.now > expire_at
+          if gateway = config[:ssh_gateway]
+            until connectivity_helper.test_ssh_tunnel(:host => hostname, :port => port, :gateway => gateway)
+              raise 'Could not establish tunneled SSH connection with the server' if Time.now > expire_at
+            end
+          else
+            until connectivity_helper.test_tcp(:host => hostname, :port => port)
+              raise 'Could not establish SSH connection with the server' if Time.now > expire_at
+            end
           end
         end
 
@@ -125,24 +129,11 @@ module Knife
         # TODO AS: WinRM can be on 5986 port actually depending on :winrm_transport
         def wait_for_winrm(hostname)
           expire_at = Time.now + 3600
+          # TODO AS: Seems to be set earlier as default
           port = config[:winrm_port] || 5985
 
           until connectivity_helper.test_tcp(:host => hostname, :port => port)
             raise 'Could not establish WinRM connection with the server' if Time.now > expire_at
-          end
-        end
-
-        # TODO: Sync module
-        def retry_on_timeouts(tries = 2, &block)
-          yield
-        rescue Errno::ETIMEDOUT => e
-          tries -= 1
-
-          if tries > 0
-            ui.info 'Retrying host connection...'
-            retry
-          else
-            raise
           end
         end
 
