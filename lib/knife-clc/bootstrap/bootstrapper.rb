@@ -1,4 +1,5 @@
 require_relative 'validator'
+require_relative 'connectivity_helper'
 
 module Knife
   module Clc
@@ -14,7 +15,6 @@ module Knife
         end
 
         # TODO: Extract to separate sync bootstrap module
-
         def sync_bootstrap(server)
           if config[:clc_bootstrap_platform] == 'windows'
             sync_windows_bootstrap(server)
@@ -26,9 +26,10 @@ module Knife
         def sync_linux_bootstrap(server)
           cloud_adapter.ensure_server_powered_on(server)
 
-          command = bootstrap_command
+          fqdn = get_server_fqdn(server)
+          wait_for_sshd(fqdn)
 
-          command.name_args = [get_server_fqdn(server)]
+          command = bootstrap_command
 
           username, password = config.values_at(:ssh_user, :ssh_password)
           unless username && password
@@ -36,13 +37,18 @@ module Knife
             command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
           end
 
+          command.name_args = [fqdn]
           command.config[:chef_node_name] ||= server['name']
 
-          retry_on_timeouts { command.run }
+          command.run
         end
 
         def sync_windows_bootstrap(server)
           cloud_adapter.ensure_server_powered_on(server)
+
+          fqdn = get_server_fqdn(server)
+          wait_for_winrm(fqdn)
+
           command = bootstrap_windows_command
 
           username, password = config.values_at(:winrm_user, :winrm_password)
@@ -54,10 +60,10 @@ module Knife
             command.config.merge!(:winrm_user => creds['userName'], :winrm_password => creds['password'])
           end
 
-          command.name_args = [get_server_fqdn(server)]
+          command.name_args = [fqdn]
           command.config[:chef_node_name] ||= server['name']
 
-          retry_on_timeouts { command.run }
+          command.run
         end
 
         # TODO: Extract to separate async bootstrap module
@@ -97,17 +103,37 @@ module Knife
           )
         end
 
-        # TODO: Sync module
-        def retry_on_timeouts(tries = 2, &block)
-          yield
-        rescue Errno::ETIMEDOUT => e
-          tries -= 1
+        def connectivity_helper
+          @connectivity_helper ||= ConnectivityHelper.new
+        end
 
-          if tries > 0
-            ui.info 'Retrying host connection...'
-            retry
+        # Linux Connectivity stuff
+        def wait_for_sshd(hostname)
+          expire_at = Time.now + 30
+
+          # TODO AS: Not being set by default
+          port = config[:ssh_port] || 22
+
+          if gateway = config[:ssh_gateway]
+            until connectivity_helper.test_ssh_tunnel(:host => hostname, :port => port, :gateway => gateway)
+              raise 'Could not establish tunneled SSH connection with the server' if Time.now > expire_at
+            end
           else
-            raise
+            until connectivity_helper.test_tcp(:host => hostname, :port => port)
+              raise 'Could not establish SSH connection with the server' if Time.now > expire_at
+            end
+          end
+        end
+
+        # Windows connectivity stuff
+        # TODO AS: WinRM can be on 5986 port actually depending on :winrm_transport
+        def wait_for_winrm(hostname)
+          expire_at = Time.now + 3600
+          # TODO AS: Seems to be set earlier as default
+          port = config[:winrm_port] || 5985
+
+          until connectivity_helper.test_tcp(:host => hostname, :port => port)
+            raise 'Could not establish WinRM connection with the server' if Time.now > expire_at
           end
         end
 
