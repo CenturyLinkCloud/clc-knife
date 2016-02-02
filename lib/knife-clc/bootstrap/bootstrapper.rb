@@ -65,6 +65,8 @@ module Knife
               :connectivity_helper => connectivity_helper,
               :subcommand_loader => subcommand_loader
             )
+          else
+            raise 'No suitable bootstrap method found'
           end
         end
 
@@ -80,6 +82,8 @@ module Knife
               :config => config,
               :subcommand_loader => subcommand_loader
             )
+          else
+            raise 'No suitable bootstrap method found'
           end
         end
       end
