@@ -51,14 +51,6 @@ module Knife
       def show_errors
         errors.each { |message| ui.error message }
       end
-
-      def knife_running_on_windows?
-        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
-      end
-
-      def knife_running_on_linux?
-        !knife_running_on_windows?
-      end
     end
   end
 end

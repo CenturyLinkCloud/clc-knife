@@ -14,21 +14,18 @@ module Knife
         end
 
         def execute
-          server_params = launch_parameters
-          yield server_params if block_given?
-
-          connection.create_server(server_params)
+          connection.create_server(launch_parameters)
         end
 
         def prepare
           validator.validate
         end
 
-        private
-
         def launch_parameters
-          mapper.prepare_launch_parameters
+          @launch_parameters ||= mapper.prepare_launch_parameters
         end
+
+        private
 
         def validator
           @validator ||= Validator.new(:config => config, :errors => errors)

@@ -1,96 +1,34 @@
 require_relative 'validator'
 require_relative 'connectivity_helper'
+require_relative 'subcommand_loader'
+
+require_relative 'methods/async_linux_package'
+require_relative 'methods/async_windows_package'
+require_relative 'methods/sync_linux_ssh'
+require_relative 'methods/sync_windows_winrm'
 
 module Knife
   module Clc
     module Bootstrap
       class Bootstrapper
-        attr_reader :cloud_adapter, :config, :errors, :ui
+        attr_reader :cloud_adapter, :config, :errors
 
         def initialize(params)
           @cloud_adapter = params.fetch(:cloud_adapter)
           @config = params.fetch(:config)
           @errors = params.fetch(:errors)
-          @ui = params.fetch(:ui)
         end
 
-        # TODO: Extract to separate sync bootstrap module
         def sync_bootstrap(server)
-          if config[:clc_bootstrap_platform] == 'windows'
-            sync_windows_bootstrap(server)
-          else
-            sync_linux_bootstrap(server)
-          end
+          sync_bootstrap_method.execute(server)
         end
 
-        def sync_linux_bootstrap(server)
-          cloud_adapter.ensure_server_powered_on(server)
-
-          fqdn = get_server_fqdn(server)
-          wait_for_sshd(fqdn)
-
-          command = bootstrap_command
-
-          username, password = config.values_at(:ssh_user, :ssh_password)
-          unless username && password
-            creds = cloud_adapter.get_server_credentials(server)
-            command.config.merge!(:ssh_user => creds['userName'], :ssh_password => creds['password'])
-          end
-
-          command.name_args = [fqdn]
-          command.config[:chef_node_name] ||= server['name']
-
-          command.run
-        end
-
-        def sync_windows_bootstrap(server)
-          cloud_adapter.ensure_server_powered_on(server)
-
-          fqdn = get_server_fqdn(server)
-          wait_for_winrm(fqdn)
-
-          command = bootstrap_windows_command
-
-          username, password = config.values_at(:winrm_user, :winrm_password)
-          command.config[:winrm_user] = username
-          command.config[:winrm_password] = password
-
-          unless username && password
-            creds = cloud_adapter.get_server_credentials(server)
-            command.config.merge!(:winrm_user => creds['userName'], :winrm_password => creds['password'])
-          end
-
-          command.name_args = [fqdn]
-          command.config[:chef_node_name] ||= server['name']
-
-          command.run
-        end
-
-        # TODO: Extract to separate async bootstrap module
-        def add_bootstrapping_params(launch_params)
-          launch_params['packages'] ||= []
-          if config[:clc_bootstrap_platform] == 'linux'
-            launch_params['packages'] << package_for_async_bootstrap
-          else
-            launch_params['packages'].push(*package_for_async_windows_bootstrap)
-          end
+        def async_bootstrap(launch_parameters)
+          async_bootstrap_method.execute(launch_parameters)
         end
 
         def prepare
           validator.validate
-        end
-
-        def enable_winrm_package
-          {
-            'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-            'parameters' => {
-              'Mode' => 'PowerShell',
-              'Script' => "
-                winrm set winrm/config/service/auth '@{Basic=\"true\"}'
-                winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'
-              "
-            }
-          }
         end
 
         private
@@ -107,117 +45,46 @@ module Knife
           @connectivity_helper ||= ConnectivityHelper.new
         end
 
-        # Linux Connectivity stuff
-        def wait_for_sshd(hostname)
-          expire_at = Time.now + 30
+        def subcommand_loader
+          @subcommand_loader ||= SubcommandLoader.new
+        end
 
-          # TODO AS: Not being set by default
-          port = config[:ssh_port] || 22
-
-          if gateway = config[:ssh_gateway]
-            until connectivity_helper.test_ssh_tunnel(:host => hostname, :port => port, :gateway => gateway)
-              raise 'Could not establish tunneled SSH connection with the server' if Time.now > expire_at
-            end
+        def sync_bootstrap_method
+          case config[:clc_bootstrap_platform]
+          when 'linux'
+            Methods::SyncLinuxSsh.new(
+              :cloud_adapter => cloud_adapter,
+              :config => config,
+              :connectivity_helper => connectivity_helper,
+              :subcommand_loader => subcommand_loader
+            )
+          when 'windows'
+            Methods::SyncWindowsWinrm.new(
+              :cloud_adapter => cloud_adapter,
+              :config => config,
+              :connectivity_helper => connectivity_helper,
+              :subcommand_loader => subcommand_loader
+            )
           else
-            until connectivity_helper.test_tcp(:host => hostname, :port => port)
-              raise 'Could not establish SSH connection with the server' if Time.now > expire_at
-            end
+            raise 'No suitable bootstrap method found'
           end
         end
 
-        # Windows connectivity stuff
-        # TODO AS: WinRM can be on 5986 port actually depending on :winrm_transport
-        def wait_for_winrm(hostname)
-          expire_at = Time.now + 3600
-          # TODO AS: Seems to be set earlier as default
-          port = config[:winrm_port] || 5985
-
-          until connectivity_helper.test_tcp(:host => hostname, :port => port)
-            raise 'Could not establish WinRM connection with the server' if Time.now > expire_at
-          end
-        end
-
-        # TODO: Sync module
-        def get_server_fqdn(server)
-          if indirect_bootstrap?
-            cloud_adapter.get_private_ip(server)
+        def async_bootstrap_method
+          case config[:clc_bootstrap_platform]
+          when 'linux'
+            Methods::AsyncLinuxPackage.new(
+              :config => config,
+              :subcommand_loader => subcommand_loader
+            )
+          when 'windows'
+            Methods::AsyncWindowsPackage.new(
+              :config => config,
+              :subcommand_loader => subcommand_loader
+            )
           else
-            cloud_adapter.get_public_ip(server)
+            raise 'No suitable bootstrap method found'
           end
-        end
-
-        # TODO: Sync module
-        def indirect_bootstrap?
-          config[:clc_bootstrap_private] || config[:ssh_gateway]
-        end
-
-        # TODO: Async module
-        def package_for_async_bootstrap
-          {
-            'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-            'parameters' => {
-              'Mode' => 'Ssh',
-              'Script' => bootstrap_command.render_template
-            }
-          }
-        end
-
-        # TODO: Async module
-        def package_for_async_windows_bootstrap
-          require 'chef/knife/bootstrap_windows_winrm'
-          klass = Chef::Knife::BootstrapWindowsWinrm
-          klass.load_deps
-          bootstrap_command = klass.new
-          bootstrap_command.config.merge!(config)
-          bootstrap_command.configure_chef
-
-          script = bootstrap_command.render_template(bootstrap_command.load_template(config[:bootstrap_template]))
-
-          parts = split_script(script)
-
-          parts.map do |part|
-            {
-              'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-              'parameters' => {
-                'Mode' => 'PowerShell',
-                'Script' => part
-              }
-            }
-          end
-        end
-
-        # TODO: Async module
-        def split_script(script)
-          batch_size = 100
-
-          partial_scripts = script.lines.each_slice(batch_size).map do |lines|
-            part = "$script = @'\n" +
-              lines.join('') +
-              "'@\n" +
-              "$script | out-file C:\\bootstrap.bat -Append -Encoding ASCII\n"
-
-            part.gsub("\n", "\r\n")
-          end
-
-          partial_scripts << 'C:\bootstrap.bat'
-        end
-
-        # TODO: Seems like generic part for both sync and async
-        def bootstrap_command
-          bootstrap_command_class.load_deps
-          command = bootstrap_command_class.new
-          command.config.merge!(config)
-          command.configure_chef
-          command
-        end
-
-        def bootstrap_windows_command
-          Chef::Knife::BootstrapWindowsWinrm.new
-        end
-
-        # TODO: Should be parametrized to support windows & linux
-        def bootstrap_command_class
-          Chef::Knife::Bootstrap
         end
       end
     end

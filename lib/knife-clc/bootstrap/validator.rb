@@ -67,7 +67,7 @@ module Knife
 
         def check_connectivity_errors
           if config[:clc_bootstrap_platform] == 'windows'
-            errors << "Bootstrapping requires Winrm access to the server" unless winrm_access_requested?
+            errors << "Bootstrapping requires WinRM access to the server" unless winrm_access_requested?
           else
             errors << "Bootstrapping requires SSH access to the server" unless ssh_access_requested?
           end
