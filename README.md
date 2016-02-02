@@ -112,7 +112,7 @@ Specific command options can be found by invoking the subcommand with a `--help`
 * [knife clc server show ID (options)](#knife-clc-server-show)
 * [knife clc template list (options)](#knife-clc-template-list)
 
-**Note:** Some commands provide access to long-running cloud operations. These commands are **asynchronous**(async) by default (they don't wait for the operation to complete before continuing their work and they don't return an output immediately). All of them support the `--wait` option, which makes the command pause until the operation either completes or fails.
+**Note:** Some commands provide access to long-running cloud operations. These commands are **asynchronous** (async) by default (they don't wait for the operation to complete before continuing their work and they don't return an output immediately). All of them support the `--wait` option, which makes the command pause until the operation either completes or fails.
 
 Several types of resources are scoped by the datacenter they reside in. Commands querying for these resources support the `--datacenter ID` option, which returns resources for a specific data center. Some of the commands support the `--all` option, which returns all resources from all data centers (this command is much slower).
 
@@ -142,7 +142,7 @@ $ knife clc group list --datacenter ca1 --view table
 ```
 
 ### `knife clc ip create`
-**Asynchronous**. **Scoped by server**. Assigns a public IP to a specified server. Applies the passes protocol and source restrictions. While the CLC API supports TCP, UDP and ICMP permissions only, this command provides several useful aliases to the most frequently used protocols: `ssh`, `sftp`, `ftp`, `http`, `https`, `ftp`, and `ftps`. These same options can be provided during server creation.
+**Asynchronous**. **Scoped by server**. Assigns a public IP to a specified server. Applies the passes protocol and source restrictions. While the CLC API supports TCP, UDP and ICMP permissions only, this command provides several useful aliases to the most frequently used protocols: `winrm`, `ssh`, `sftp`, `ftp`, `http`, `https`, `ftp`, and `ftps`. These same options can be provided during server creation.
 
 ```bash
 $ knife clc ip create --server ca1altdqasrv01 \
@@ -187,9 +187,13 @@ $ knife clc server create --name 'QASrv' \
 ```
 
 #### Bootstrap flag
-This command supports the `--bootstrap` flag, which allows the launched machine to connect to your Chef Server installation. Only the **Linux** platform is supported.
+This command supports the `--bootstrap` flag, which allows the launched machine to connect to your Chef Server installation. Both **Linux** and **Windows** platforms are supported. Knife determines platform automatically, but it can be overriden by `--botstrap-platform` option. Current implementation bootstraps Linux nodes via SSH, and Windows nodes via WinRM protocol. Bootstrap specific options (as well as platform specific ones) are labelled in command manual accordingly. For example:
 
-The async bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server. They will be used by the Chef Client installation script during launch.
+```bash
+-x, --winrm-user USERNAME        [Bootstrap] (Windows Only) The WinRM username
+```
+
+The asynchronous bootstrap variant does not require public IP access to the machine. Chef Server credentials and other parameters will be sent to the server. They will be used by the Chef Client installation script during launch.
 
 **Note:** Bootstrapping errors will cancel a launch operation.
 
@@ -205,9 +209,9 @@ $ knife clc server create --name 'QASrv' \
 --tags one,two,three
 ```
 
-The synchronous(sync) bootstrap variant is very similar to the bootstrap used in other Knife plugins. It requires an SSH connection to the server.
+The synchronous bootstrap variant is very similar to the bootstrap used in other Knife plugins. It requires an SSH connection to the server.
 
-**Note:** The plugin will refuse to launch a server unless a public IP with SSH access is requested.
+**Note:** The plugin will refuse to launch a server unless a public IP is requested. Linux machines require SSH access port (TCP:22 by default). Windows machines require WinRM access port (defaults to TCP:5985 or TCP:5986 depending on `--winrm-transport`).
 
 Example for custom SSH port:
 
