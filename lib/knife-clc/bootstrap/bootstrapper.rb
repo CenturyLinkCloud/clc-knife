@@ -31,20 +31,6 @@ module Knife
           validator.validate
         end
 
-        # Sync, Windows... (before the launch...#?)
-        def enable_winrm_package
-          {
-            'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
-            'parameters' => {
-              'Mode' => 'PowerShell',
-              'Script' => "
-                winrm set winrm/config/service/auth '@{Basic=\"true\"}'
-                winrm set winrm/config/service '@{AllowUnencrypted=\"true\"}'
-              "
-            }
-          }
-        end
-
         private
 
         def validator

@@ -31,18 +31,7 @@ class Chef
 
       def sync_create_server
         ui.info 'Requesting server launch...'
-
-        # TODO AS: Hide inside of sync bootstrap stuff...
-        # TODO AS: Block is no longer supported
-        if config[:clc_bootstrap] && config[:clc_bootstrap_platform] == 'windows' && knife_running_on_linux?
-          links = server_launcher.execute do |launch_params|
-            launch_params["packages"] ||= []
-            launch_params["packages"] << bootstrapper.enable_winrm_package
-          end
-        else
-          links = server_launcher.execute
-        end
-
+        links = server_launcher.execute
         connection.wait_for(links['operation']['id']) { putc '.' }
         ui.info "\n"
         ui.info "Server has been launched"

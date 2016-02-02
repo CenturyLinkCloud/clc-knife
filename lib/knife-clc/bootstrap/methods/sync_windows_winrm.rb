@@ -18,7 +18,7 @@ module Knife
             fqdn = get_server_fqdn(server)
             wait_for_winrm(fqdn)
 
-            command = subcommand_loader.load(Chef::Knife::BootstrapWindowsWinrm)
+            command = subcommand_loader.load(:class => Chef::Knife::BootstrapWindowsWinrm, :config => config)
 
             username, password = config.values_at(:winrm_user, :winrm_password)
             unless username && password

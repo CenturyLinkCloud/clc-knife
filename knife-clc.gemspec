@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'faraday_middleware', '~> 0.10.0'
   spec.add_dependency 'hirb', '~> 0.7.0'
   spec.add_dependency 'chef', '~> 12.0'
-  spec.add_dependency 'knife-windows', '~> 1.0'
+  spec.add_dependency 'knife-windows', '~> 1.2.0'
 
   spec.add_development_dependency 'webmock', '~> 1.22.3'
   spec.add_development_dependency 'rubocop', '~> 0.34.2'

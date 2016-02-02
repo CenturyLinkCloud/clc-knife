@@ -18,7 +18,7 @@ module Knife
             fqdn = get_server_fqdn(server)
             wait_for_sshd(fqdn)
 
-            command = subcommand_loader.load(Chef::Knife::Bootstrap)
+            command = subcommand_loader.load(:class => Chef::Knife::Bootstrap, :config => config)
 
             username, password = config.values_at(:ssh_user, :ssh_password)
             unless username && password
