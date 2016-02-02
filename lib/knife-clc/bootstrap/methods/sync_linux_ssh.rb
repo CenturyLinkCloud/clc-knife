@@ -3,12 +3,13 @@ module Knife
     module Bootstrap
       module Methods
         class SyncLinuxSsh
-          attr_reader :cloud_adapter, :config, :connectivity_helper
+          attr_reader :cloud_adapter, :config, :connectivity_helper, :subcommand_loader
 
           def initialize(params)
             @cloud_adapter = params.fetch(:cloud_adapter)
             @config = params.fetch(:config)
             @connectivity_helper = params.fetch(:connectivity_helper)
+            @subcommand_loader = params.fetch(:subcommand_loader)
           end
 
           def execute(server)
@@ -17,7 +18,7 @@ module Knife
             fqdn = get_server_fqdn(server)
             wait_for_sshd(fqdn)
 
-            command = bootstrap_command
+            command = subcommand_loader.load(Chef::Knife::Bootstrap)
 
             username, password = config.values_at(:ssh_user, :ssh_password)
             unless username && password
@@ -35,8 +36,6 @@ module Knife
 
           def wait_for_sshd(hostname)
             expire_at = Time.now + 30
-
-            # TODO AS: Not being set by default
             port = config[:ssh_port] || 22
 
             if gateway = config[:ssh_gateway]
@@ -58,21 +57,8 @@ module Knife
             end
           end
 
-          # TODO AS: Platform specific checks... like ssh gateway stuff
           def indirect_bootstrap?
             config[:clc_bootstrap_private] || config[:ssh_gateway]
-          end
-
-          def bootstrap_command
-            bootstrap_command_class.load_deps
-            command = bootstrap_command_class.new
-            command.config.merge!(config)
-            command.configure_chef
-            command
-          end
-
-          def bootstrap_command_class
-            Chef::Knife::Bootstrap
           end
         end
       end

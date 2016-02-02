@@ -3,10 +3,11 @@ module Knife
     module Bootstrap
       module Methods
         class AsyncLinuxPackage
-          attr_reader :config
+          attr_reader :config, :subcommand_loader
 
           def initialize(params)
             @config = params.fetch(:config)
+            @subcommand_loader = params.fetch(:subcommand_loader)
           end
 
           def execute(launch_parameters)
@@ -21,21 +22,17 @@ module Knife
               'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
               'parameters' => {
                 'Mode' => 'Ssh',
-                'Script' => bootstrap_command.render_template
+                'Script' => bootstrap_script
               }
             }]
           end
 
-          def bootstrap_command
-            bootstrap_command_class.load_deps
-            command = bootstrap_command_class.new
-            command.config.merge!(config)
-            command.configure_chef
-            command
+          def bootstrap_script
+            bootstrap_command.render_template
           end
 
-          def bootstrap_command_class
-            Chef::Knife::Bootstrap
+          def bootstrap_command
+            subcommand_loader.load(:class => Chef::Knife::Bootstrap, :config => config)
           end
         end
       end

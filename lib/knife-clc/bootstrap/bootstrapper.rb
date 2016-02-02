@@ -1,5 +1,6 @@
 require_relative 'validator'
 require_relative 'connectivity_helper'
+require_relative 'subcommand_loader'
 
 require_relative 'methods/async_linux_package'
 require_relative 'methods/async_windows_package'
@@ -58,17 +59,41 @@ module Knife
           @connectivity_helper ||= ConnectivityHelper.new
         end
 
+        def subcommand_loader
+          @subcommand_loader ||= SubcommandLoader.new
+        end
+
         def sync_bootstrap_method
           case config[:clc_bootstrap_platform]
-          when 'linux' then Methods::SyncLinuxSsh.new(:cloud_adapter => cloud_adapter, :config => config, :connectivity_helper => connectivity_helper)
-          when 'windows' then Methods::SyncWindowsWinrm.new(:cloud_adapter => cloud_adapter, :config => config, :connectivity_helper => connectivity_helper)
+          when 'linux'
+            Methods::SyncLinuxSsh.new(
+              :cloud_adapter => cloud_adapter,
+              :config => config,
+              :connectivity_helper => connectivity_helper,
+              :subcommand_loader => subcommand_loader
+            )
+          when 'windows'
+            Methods::SyncWindowsWinrm.new(
+              :cloud_adapter => cloud_adapter,
+              :config => config,
+              :connectivity_helper => connectivity_helper,
+              :subcommand_loader => subcommand_loader
+            )
           end
         end
 
         def async_bootstrap_method
           case config[:clc_bootstrap_platform]
-          when 'linux' then Methods::AsyncLinuxPackage.new(:config => config)
-          when 'windows' then Methods::AsyncWindowsPackage.new(:config => config)
+          when 'linux'
+            Methods::AsyncLinuxPackage.new(
+              :config => config,
+              :subcommand_loader => subcommand_loader
+            )
+          when 'windows'
+            Methods::AsyncWindowsPackage.new(
+              :config => config,
+              :subcommand_loader => subcommand_loader
+            )
           end
         end
       end

@@ -1,10 +1,18 @@
+require 'chef/knife/bootstrap_windows_winrm'
+
 module Knife
   module Clc
     module Bootstrap
       module Methods
         class AsyncWindowsPackage
+          COMBINED_SCRIPT_PATH = 'C:/bootstrap.bat'
+          LINES_PER_PARTIAL_SCRIPT = 100
+
+          attr_reader :config, :subcommand_loader
+
           def initialize(params)
             @config = params.fetch(:config)
+            @subcommand_loader = params.fetch(:subcommand_loader)
           end
 
           def execute(launch_parameters)
@@ -15,53 +23,44 @@ module Knife
           private
 
           def packages_for_async_bootstrap
-            require 'chef/knife/bootstrap_windows_winrm'
-            klass = Chef::Knife::BootstrapWindowsWinrm
-            klass.load_deps
-            bootstrap_command = klass.new
-            bootstrap_command.config.merge!(config)
-            bootstrap_command.configure_chef
-
-            script = bootstrap_command.render_template(bootstrap_command.load_template(config[:bootstrap_template]))
-
-            parts = split_script(script)
-
-            parts.map do |part|
+            split_script(bootstrap_script).map do |partial_script|
               {
                 'packageId' => 'a5d9d04369df4276a4f98f2ca7f7872b',
                 'parameters' => {
                   'Mode' => 'PowerShell',
-                  'Script' => part
+                  'Script' => partial_script
                 }
               }
             end
           end
 
           def split_script(script)
-            batch_size = 100
-
-            partial_scripts = script.lines.each_slice(batch_size).map do |lines|
-              part = "$script = @'\n" +
-                lines.join('') +
-                "'@\n" +
-                "$script | out-file C:\\bootstrap.bat -Append -Encoding ASCII\n"
-
-              part.gsub("\n", "\r\n")
+            partial_scripts = script.lines.each_slice(LINES_PER_PARTIAL_SCRIPT).map do |lines|
+              appending_script(lines.join).tap { |script| ensure_windows_newlines(script) }
             end
 
-            partial_scripts << 'C:\bootstrap.bat'
+            partial_scripts.push(COMBINED_SCRIPT_PATH)
+          end
+
+          def appending_script(script_to_append)
+            "$script = @'\n" +
+            script_to_append +
+            "'@\n" +
+            "$script | out-file #{COMBINED_SCRIPT_PATH} -Append -Encoding ASCII\n"
+          end
+
+          def ensure_windows_newlines(script)
+            script.gsub!("\r\n", "\n")
+            script.gsub!("\n", "\r\n")
           end
 
           def bootstrap_command
-            bootstrap_command_class.load_deps
-            command = bootstrap_command_class.new
-            command.config.merge!(config)
-            command.configure_chef
-            command
+            subcommand_loader.load(:class => Chef::Knife::BootstrapWindowsWinrm, :config => config)
           end
 
-          def bootstrap_command_class
-            Chef::Knife::BootstrapWindowsWinrm
+          def bootstrap_script
+            command = bootstrap_command
+            command.render_template(command.load_template(config[:bootstrap_template]))
           end
         end
       end

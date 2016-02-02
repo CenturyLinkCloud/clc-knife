@@ -3,12 +3,13 @@ module Knife
     module Bootstrap
       module Methods
         class SyncWindowsWinrm
-          attr_reader :cloud_adapter, :config, :connectivity_helper
+          attr_reader :cloud_adapter, :config, :connectivity_helper, :subcommand_loader
 
           def initialize(params)
             @cloud_adapter = params.fetch(:cloud_adapter)
             @config = params.fetch(:config)
             @connectivity_helper = params.fetch(:connectivity_helper)
+            @subcommand_loader = params.fetch(:subcommand_loader)
           end
 
           def execute(server)
@@ -17,7 +18,7 @@ module Knife
             fqdn = get_server_fqdn(server)
             wait_for_winrm(fqdn)
 
-            command = bootstrap_windows_command
+            command = subcommand_loader.load(Chef::Knife::BootstrapWindowsWinrm)
 
             username, password = config.values_at(:winrm_user, :winrm_password)
             unless username && password
@@ -33,11 +34,8 @@ module Knife
 
           private
 
-          # Windows connectivity stuff
-          # TODO AS: WinRM can be on 5986 port actually depending on :winrm_transport
           def wait_for_winrm(hostname)
             expire_at = Time.now + 3600
-            # TODO AS: Seems to be set earlier as default
             port = config[:winrm_port] || 5985
 
             until connectivity_helper.test_tcp(:host => hostname, :port => port)
@@ -53,21 +51,8 @@ module Knife
             end
           end
 
-          # TODO AS: Platform specific checks... like ssh gateway stuff
           def indirect_bootstrap?
-            config[:clc_bootstrap_private] || config[:ssh_gateway]
-          end
-
-          def bootstrap_command
-            bootstrap_command_class.load_deps
-            command = bootstrap_command_class.new
-            command.config.merge!(config)
-            command.configure_chef
-            command
-          end
-
-          def bootstrap_command_class
-            Chef::Knife::BootstrapWindowsWinrm
+            config[:clc_bootstrap_private]
           end
         end
       end
